@@ -15,15 +15,15 @@ establish a secure connection or building a complex network application, **warp-
 
 Install the module via npm:
 
-\```shell
+```shell
 npm i @remote.it/warp
-\```
+```
 
 ## Basic Usage :computer:
 
 To quickly set up a WARP session:
 
-\```typescript
+```typescript
 import {WarpSession} from '@remote.it/warp';
 
 // Initialize a new WARP session
@@ -36,7 +36,7 @@ const port = await session.connect();
 
 // Don't forget to gracefully disconnect when done!
 await session.disconnect();
-\```
+```
 
 ## API Documentation :book:
 
