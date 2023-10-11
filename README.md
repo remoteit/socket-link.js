@@ -65,7 +65,7 @@ const proxy = new WarpProxy({
 ## Credential File Structure :key:
 
 The credential file is designed to store access keys for the Remote.It WARP service. This structure allows you to define
-multiple profiles, each with its own set of credentials.
+multiple profiles, each with its own set of credentials. You can create and manage your keys in your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
 The file is formatted in the INI style, where each section corresponds to a unique profile.
 
