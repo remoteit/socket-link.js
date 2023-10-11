@@ -40,11 +40,11 @@ await session.disconnect();
 
 ## API Documentation :book:
 
-For a more comprehensive guide and API documentation, [visit our official documentation](#).
+For a more comprehensive guide and API documentation, [visit our official documentation](https://github.com/remoteit/warp-js).
 
 ## Support and Contribution :raising_hand:
 
-Encountered issues or have suggestions? Feel free to open an [issue](https://github.com/your-github-url/here/issues) or
+Encountered issues or have suggestions? Feel free to open an [issue](https://github.com/remoteit/warp-js/issues) or
 submit a pull request.
 
 ## License :page_facing_up:
