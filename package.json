@@ -23,7 +23,7 @@
     "remote.it",
     "routing",
     "tunnel",
-    "typescript"
+    "typescript",
     "warp",
     "websocket"
   ],
