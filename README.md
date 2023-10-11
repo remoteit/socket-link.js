@@ -21,26 +21,27 @@ npm i @remote.it/warp
 
 ## Basic Usage :computer:
 
-To quickly set up a WARP session:
+To quickly set up a WARP proxy:
 
 ```typescript
-import {WarpSession} from '@remote.it/warp';
+import {WarpProxy} from '@remote.it/warp';
 
-// Initialize a new WARP session
-const session = new WarpSession({ url: 'wss://xxxxxxxx.connect.remote.it' });
+// Initialize a new WARP proxy to the target service
+const proxy = new WarpProxy({url: 'wss://xxxxxxxx.connect.remote.it'});
 
-// Connect and retrieve the localhost port
-const port = await session.connect();
+// Open and retrieve the localhost port
+const port = await proxy.open();
 
 // You can now use the localhost port in your application
 
-// Don't forget to gracefully disconnect when done!
-await session.disconnect();
+// Don't forget to gracefully close when done!
+await proxy.close();
 ```
 
 ## API Documentation :book:
 
-For a more comprehensive guide and API documentation, [visit our official documentation](https://github.com/remoteit/warp-js).
+For a more comprehensive guide and API
+documentation, [visit our official documentation](https://github.com/remoteit/warp-js).
 
 ## Support and Contribution :raising_hand:
 

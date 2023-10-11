@@ -40,7 +40,7 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
   pingInterval: 60000
 }
 
-export class WarpSession {
+export class WarpProxy {
   private readonly options: WarpOptions
   private lastPort!: number
   private server!: Server
@@ -49,7 +49,7 @@ export class WarpSession {
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
   }
 
-  async connect(): Promise<number> {
+  async open(): Promise<number> {
     this.server = createServer({noDelay: true})
 
     const port = this.options.port || await this.getNextAvailablePort()
@@ -64,7 +64,7 @@ export class WarpSession {
     })
   }
 
-  async disconnect(): Promise<void> {
+  async close(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.server?.close(error => error ? reject(error) : resolve())
     })
