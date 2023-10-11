@@ -18,13 +18,13 @@ const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
 
 export interface WarpOptions {
   url: string
-  credentials: string // path to remote.it credentials file
+  credentials: string // path to Remote.It credentials file
   profile: string // profile name in the credentials file
   host: string // host to bind to, defaults to localhost
   port?: number // leave undefined to find an available port
   minPort: number // minimum port to use
   maxPort: number // minimum port to use
-  timeout: number // timeout, defaults to 30000 ms
+  timeout: number // timeout, defaults to 10000 ms
   userAgent: string // user agent to use, defaults to remoteit-warp/1.0
   pingInterval: number // ping interval, defaults to 60000 ms
 }
@@ -35,7 +35,7 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
   host: '127.0.0.1',
   minPort: 30000,
   maxPort: 39999,
-  timeout: 30000,
+  timeout: 10000,
   userAgent: 'remoteit-warp/1.0',
   pingInterval: 60000
 }
@@ -118,27 +118,27 @@ export class WarpProxy {
     if (!R3_ACCESS_KEY_ID || !R3_SECRET_ACCESS_KEY) {
       const file = this.options.credentials
 
-      if (!fs.existsSync(file)) throw new Error(`remote.it credentials file not found: ${file}`)
+      if (!fs.existsSync(file)) throw new Error(`Remote.It credentials file not found: ${file}`)
 
       let credentials = null
 
       try {
         credentials = ini.parse(fs.readFileSync(file, 'utf-8'))
       } catch (error: any) {
-        throw new Error(`remote.it credentials file error: ${error.message}`)
+        throw new Error(`Remote.It credentials file error: ${error.message}`)
       }
 
       const profile = this.options.profile
 
       const section = credentials[profile]
 
-      if (!section) throw new Error(`remote.it profile not found: ${profile}`);
+      if (!section) throw new Error(`Remote.It profile not found: ${profile}`);
 
       ({R3_ACCESS_KEY_ID, R3_SECRET_ACCESS_KEY} = section)
     }
 
-    if (!R3_ACCESS_KEY_ID) throw new Error(`remote.it credentials missing: R3_ACCESS_KEY_ID`)
-    if (!R3_SECRET_ACCESS_KEY) throw new Error(`remote.it credentials missing: R3_SECRET_ACCESS_KEY`)
+    if (!R3_ACCESS_KEY_ID) throw new Error(`Remote.It credentials missing: R3_ACCESS_KEY_ID`)
+    if (!R3_SECRET_ACCESS_KEY) throw new Error(`Remote.It credentials missing: R3_SECRET_ACCESS_KEY`)
 
     return createSigner(Buffer.from(R3_SECRET_ACCESS_KEY, 'base64'), SIGNATURE_ALGORITHM, R3_ACCESS_KEY_ID)
   }
