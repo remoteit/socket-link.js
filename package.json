@@ -1,5 +1,9 @@
 {
   "name": "@remote.it/warp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/remoteit/warp-js.git"
+  },
   "version": "1.0.0",
   "description": "Remote.It WARP SDK/CLI",
   "main": "dist/index.js",

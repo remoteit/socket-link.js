@@ -128,3 +128,9 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+/.idea/
+/src/
+/.nvmrc
+/package.json
+/tsconfig.json
+/webpack.config.js
