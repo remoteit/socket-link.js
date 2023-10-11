@@ -143,7 +143,7 @@ export class WarpSession {
     return createSigner(Buffer.from(R3_SECRET_ACCESS_KEY, 'base64'), SIGNATURE_ALGORITHM, R3_ACCESS_KEY_ID)
   }
 
-  async getNextAvailablePort(): Promise<number | null> {
+  private async getNextAvailablePort(): Promise<number | null> {
     const {host, minPort, maxPort} = this.options
 
     this.lastPort ||= maxPort
