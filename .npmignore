@@ -131,6 +131,5 @@ dist
 /.idea/
 /src/
 /.nvmrc
-/package.json
 /tsconfig.json
 /webpack.config.js
