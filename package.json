@@ -11,9 +11,24 @@
   "scripts": {
     "build": "webpack"
   },
-  "keywords": [],
+  "keywords": [
+    "lib",
+    "library",
+    "networking",
+    "port-forwarding",
+    "ports",
+    "proxy",
+    "remote",
+    "remote-access",
+    "remote.it",
+    "routing",
+    "tunnel",
+    "typescript"
+    "warp",
+    "websocket"
+  ],
   "author": "Benoit",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "http-message-signatures": "^1.0.0",
     "ini": "^4.1.1",
