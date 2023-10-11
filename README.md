@@ -1,7 +1,7 @@
-# warp-js :rocket:
+# warp :rocket:
 
-**warp-js** is a powerful SDK and CLI for integrating with the Remote.It WARP service. Whether you're looking to quickly
-establish a secure connection or building a complex network application, **warp-js** has got you covered.
+**warp** is a powerful SDK and CLI for integrating with the Remote.It WARP service. Whether you're looking to quickly
+establish a secure connection or building a complex network application, **warp** has got you covered.
 
 [![npm version](https://badge.fury.io/js/%40remote.it%2Fwarp.svg)](https://www.npmjs.com/package/@remote.it/warp)
 
