@@ -27,7 +27,7 @@ Setting up a WARP proxy is straightforward:
 import {WarpProxy} from '@remote.it/warp';
 
 // Specify the target service and other optional parameters
-const proxy = new WarpProxy({url: 'wss://xxxxxxxx.connect.remote.it'});
+const proxy = new WarpProxy({target: 'wss://xxxxxxxx.connect.remote.it'});
 
 // Activate the proxy and get the localhost port
 const port = await proxy.open();
@@ -47,16 +47,17 @@ options:
 import {WarpProxy} from '@remote.it/warp'
 
 const proxy = new WarpProxy({
-  url: 'wss://xxxxxxxx.connect.remote.it',  // persistent service websocket URL
-  credentials: 'path/to/credentials',       // path to Remote.It credentials file, defaults to ~/.remoteit/credentials
-  profile: 'MyProfile',                     // profile name to use, defaults to 'DEFAULT'
-  host: '127.0.0.1',                        // host to bind to, defaults to '127.0.0.1'
-  port: 2222,                               // proxy port, will default to the first available port in the range below
-  minPort: 30000,                           // lowest port to use when searching for an available port, defaults to 30000
-  maxPort: 39999,                           // highest port to use when searching for an available port, defaults to 39999
-  timeout: 10000,                           // timeout to establish the websocket connection, defaults to 10000
-  userAgent: 'my-application/1.0',          // custom user agent, defaults to 'remoteit-warp/1.0'
-  pingInterval: 60000                       // websocket ping interval, defaults to 60000
+  target: 'wss://xxxxxxxx.connect.remote.it', // persistent service websocket URL, link ID or service ID
+  router: 'connect.remote.it',                // WARP router URL, defaults to 'connect.remote.it'
+  credentials: 'path/to/credentials',         // path to Remote.It credentials file, defaults to ~/.remoteit/credentials
+  profile: 'MyProfile',                       // profile name to use, defaults to 'DEFAULT'
+  host: '127.0.0.1',                          // host to bind to, defaults to '127.0.0.1'
+  port: 2222,                                 // proxy port, will default to the first available port in the range below
+  minPort: 30000,                             // lowest port to use when searching for an available port, defaults to 30000
+  maxPort: 39999,                             // highest port to use when searching for an available port, defaults to 39999
+  timeout: 10000,                             // timeout to establish the websocket connection, defaults to 10000
+  userAgent: 'my-application/1.0',            // custom user agent, defaults to 'remoteit-warp/1.0'
+  pingInterval: 60000                         // websocket ping interval, defaults to 60000
 })
 
 // Rest of the usage remains the same

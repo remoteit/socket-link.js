@@ -13,11 +13,14 @@ import * as tcpPortUsed from 'tcp-port-used'
 import websocketStream from 'websocket-stream'
 import WebSocket from 'ws'
 
+const TARGET_REGEXP = /^(?:(?<code>[\w-:]+)|([^:]+:\/\/)?(?<host>.+))$/
+
 const SIGNATURE_ALGORITHM = 'hmac-sha256'
 const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
 
 export interface WarpOptions {
-  url: string
+  target: string // the WARP URL or target ID to connect to
+  router: string // the Remote.It WARP router hostname
   credentials: string // path to Remote.It credentials file
   profile: string // profile name in the credentials file
   host: string // host to bind to, defaults to localhost
@@ -30,6 +33,7 @@ export interface WarpOptions {
 }
 
 const DEFAULT_OPTIONS: Partial<WarpOptions> = {
+  router: 'connect.remote.it',
   credentials: path.resolve(os.homedir(), '.remoteit/credentials'),
   profile: 'DEFAULT',
   host: '127.0.0.1',
@@ -71,9 +75,7 @@ export class WarpProxy {
   }
 
   private async tunnel(client: Socket) {
-    const url = new URL(this.options.url)
-
-    url.protocol = 'wss'
+    const url = this.getURL()
 
     const options = await signMessage(
       {
@@ -110,6 +112,22 @@ export class WarpProxy {
       pump(client, target, onError)
       pump(target, client, onError)
     })
+  }
+
+  private getURL(): URL {
+    if (!this.options.target) throw new Error(`Remote.It WARP URL or target ID required`)
+
+    const match = this.options.target.match(TARGET_REGEXP)
+
+    if (!match) throw new Error(`Remote.It WARP URL or target ID invalid: ${this.options.target}`)
+
+    const {code, host} = match.groups || {}
+
+    if (host) return new URL(`wss://${host}`)
+
+    const subdomain = code.replace(/[^0-9a-z]+/ig, '').toLowerCase()
+
+    return new URL(`wss://${subdomain}.${this.options.router}`)
   }
 
   private async getKey(): Promise<SigningKey> {
