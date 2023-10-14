@@ -1,4 +1,3 @@
-import * as console from 'console'
 import * as fs from 'fs'
 import {createSigner} from 'http-message-signatures/lib/algorithm'
 import {signMessage} from 'http-message-signatures/lib/httpbis'
@@ -9,6 +8,7 @@ import {createServer, Server, Socket} from 'net'
 import * as os from 'os'
 import * as path from 'path'
 import pump from 'pump'
+import {Duplex} from 'stream'
 import * as tcpPortUsed from 'tcp-port-used'
 import websocketStream from 'websocket-stream'
 import WebSocket from 'ws'
@@ -19,16 +19,15 @@ const SIGNATURE_ALGORITHM = 'hmac-sha256'
 const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
 
 export interface WarpOptions {
-  target: string // the WARP URL or target ID to connect to
-  router: string // the Remote.It WARP router hostname
-  credentials: string // path to Remote.It credentials file
-  profile: string // profile name in the credentials file
-  host: string // host to bind to, defaults to localhost
-  port?: number // leave undefined to find an available port
-  minPort: number // minimum port to use
-  maxPort: number // minimum port to use
-  timeout: number // timeout, defaults to 10000 ms
-  userAgent: string // user agent to use, defaults to remoteit-warp/1.0
+  router: string       // the Remote.It WARP router hostname
+  credentials: string  // path to Remote.It credentials file
+  profile: string      // profile name in the credentials file
+  host: string         // host to bind to, defaults to localhost
+  port?: number        // leave undefined to find an available port
+  minPort: number      // minimum port to scan
+  maxPort: number      // minimum port to scan
+  timeout: number      // timeout, defaults to 10000 ms
+  userAgent: string    // user agent to use, defaults to remoteit-warp/1.0
   pingInterval: number // ping interval, defaults to 60000 ms
 }
 
@@ -45,12 +44,13 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
 }
 
 export class WarpProxy {
+  private readonly url: URL
   private readonly options: WarpOptions
-  private lastPort!: number
   private server!: Server
 
-  constructor(options: Partial<WarpOptions>) {
+  constructor(target: string, options: Partial<WarpOptions> = {}) {
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
+    this.url = this.parseTarget(target)
   }
 
   async open(): Promise<number> {
@@ -75,8 +75,17 @@ export class WarpProxy {
   }
 
   private async tunnel(client: Socket) {
-    const url = this.getURL()
+    const target = await this.openTarget()
 
+    const onError = (error?: Error) => error && console.error(error)
+
+    target.once('connect', () => {
+      pump(client, target, onError)
+      pump(target, client, onError)
+    })
+  }
+
+  private async openTarget(): Promise<Duplex> {
     const options = await signMessage(
       {
         key: await this.getKey(),
@@ -85,7 +94,7 @@ export class WarpProxy {
       },
       {
         method: 'GET',
-        url,
+        url: this.url,
         headers: {
           'user-agent': this.options.userAgent,
           date: new Date().toUTCString()
@@ -93,7 +102,7 @@ export class WarpProxy {
       }
     )
 
-    const ws = new WebSocket(url, {
+    const ws = new WebSocket(this.url, {
       ...options,
       agent: new https.Agent({
         timeout: this.options.timeout,
@@ -103,23 +112,16 @@ export class WarpProxy {
 
     this.monitor(ws) // monitor WebSocket
 
-    const onError = (error: Error | undefined): void => {if (error) console.error(error)}
-
     // @ts-ignore
-    const target = websocketStream(ws, {binary: true}).on('error', onError)
-
-    target.once('connect', () => {
-      pump(client, target, onError)
-      pump(target, client, onError)
-    })
+    return websocketStream(ws, {binary: true}).on('error', error => console.error(error))
   }
 
-  private getURL(): URL {
-    if (!this.options.target) throw new Error(`Remote.It WARP URL or target ID required`)
+  private parseTarget(target: string): URL {
+    if (!target) throw new Error(`Remote.It WARP URL or target ID required`)
 
-    const match = this.options.target.match(TARGET_REGEXP)
+    const match = target.match(TARGET_REGEXP)
 
-    if (!match) throw new Error(`Remote.It WARP URL or target ID invalid: ${this.options.target}`)
+    if (!match) throw new Error(`Remote.It WARP URL or target ID invalid: ${target}`)
 
     const {code, host} = match.groups || {}
 
@@ -164,14 +166,8 @@ export class WarpProxy {
   private async getNextAvailablePort(): Promise<number | null> {
     const {host, minPort, maxPort} = this.options
 
-    this.lastPort ||= maxPort
-
-    for (let port: number = this.lastPort + 1; port <= maxPort; port++) {
-      if (!await tcpPortUsed.check(port, host)) return this.lastPort = port
-    }
-
-    for (let port: number = minPort; port <= this.lastPort; port++) {
-      if (!await tcpPortUsed.check(port, host)) return this.lastPort = port
+    for (let port: number = minPort; port <= maxPort; port++) {
+      if (!await tcpPortUsed.check(port, host)) return port
     }
 
     return null
