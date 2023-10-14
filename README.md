@@ -38,6 +38,32 @@ const port = await proxy.open();
 await proxy.close();
 ```
 
+### Target Setup :dart:
+
+If you don't have a Remote.It account you can [sign up for free here](https://app.remote.it/#/sign-up). Then continue to setup the target service:
+
+1. Log into Remote.It
+2. Add a new device with the "+"
+3. Select your device type
+4. Copy the install command
+5. Run it on your device or another device on it's local network
+6. When the device appears in the app you can configure the port to want to connect to by service type (SSH, HTTPS, Postgresql ... etc) or manually
+7. Or for a networked service you can set it up to use the network IP address and port to forward
+
+Use this `service ID` as the _connection address_ for **warp**
+
+### Connection Address :round_pushpin:
+
+There are three ways you can address your connection target:
+
+| Type | Example | Details |
+| :-- | :-- | :-- |
+| Service ID | `80:00:00:00:01:0C:30:43` | This is the unique identifier for your target service |
+| WebSocket URL | `wss://xxxxxxxx.connect.remote.it` | This is a publicly sharable address ... @benoit add details |
+| Link ID | `tbd` | @benoit please describe |
+
+They can all be found in the Remote.It app on the service details pages.
+
 ## Advanced Usage :wrench:
 
 If you need more control or want to integrate with specific services, **warp** provides advanced configurations and
@@ -47,11 +73,11 @@ options:
 import {WarpProxy} from '@remote.it/warp'
 
 const proxy = new WarpProxy(
-        'wss://xxxxxxxx.connect.remote.it',   // WebSocket URL, link ID or service ID
+        'wss://xxxxxxxx.connect.remote.it',   // Connection address - Service ID, WebSocket URL, or Link ID
         {
           router: 'connect.remote.it',        // WARP router, defaults to 'connect.remote.it'
           credentials: 'path/to/credentials', // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
-          profile: 'MyProfile',               // Profile name to use, defaults to 'DEFAULT'
+          profile: 'MyProfile',               // Credentials profile name to use, defaults to 'DEFAULT'
           host: '127.0.0.1',                  // Host to bind to, defaults to '127.0.0.1'
           port: 2222,                         // Proxy port, defaults to first available port in the range below
           minPort: 30000,                     // Lowest port for available port search, defaults to 30000
