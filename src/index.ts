@@ -28,7 +28,7 @@ export interface WarpOptions {
   port?: number        // leave undefined to find an available port
   minPort: number      // minimum port to scan
   maxPort: number      // minimum port to scan
-  timeout: number      // timeout, defaults to 10000 ms
+  timeout: number      // timeout, defaults to 5000 ms
   userAgent: string    // user agent to use, defaults to remoteit-warp/1.0
   pingInterval: number // ping interval, defaults to 60000 ms
 }
@@ -42,7 +42,7 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
   host: '127.0.0.1',
   minPort: 30000,
   maxPort: 39999,
-  timeout: 10000,
+  timeout: 5000,
   userAgent: 'remoteit-warp/1.0',
   pingInterval: 60000
 }
