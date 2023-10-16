@@ -24,10 +24,10 @@ npm i @remote.it/warp
 Setting up a WARP proxy is straightforward:
 
 ```typescript
-import {WarpProxy} from '@remote.it/warp';
+import { WarpProxy } from "@remote.it/warp";
 
 // Specify the target service and other optional parameters
-const proxy = new WarpProxy('wss://xxxxxxxx.connect.remote.it');
+const proxy = new WarpProxy("MNETSJSW");
 
 // Activate the proxy and get the localhost port
 const port = await proxy.open();
@@ -56,11 +56,11 @@ Use this `service ID` as the _connection address_ for **warp**
 
 There are three ways you can address your connection target:
 
-| Type | Example | Details |
-| :-- | :-- | :-- |
-| Service ID | `80:00:00:00:01:0C:30:43` | This is the unique identifier for your target service |
+| Type          | Example                            | Details                                                     |
+| :------------ | :--------------------------------- | :---------------------------------------------------------- |
+| Service ID    | `80:00:00:00:01:0C:30:43`          | This is the unique identifier for your target service       |
 | WebSocket URL | `wss://xxxxxxxx.connect.remote.it` | This is a publicly sharable address ... @benoit add details |
-| Link ID | `tbd` | @benoit please describe |
+| Link ID       | `tbd`                              | @benoit please describe                                     |
 
 They can all be found in the Remote.It app on the service details pages.
 
@@ -70,31 +70,47 @@ If you need more control or want to integrate with specific services, **warp** p
 options:
 
 ```typescript
-import {WarpProxy} from '@remote.it/warp'
+import { WarpProxy } from "@remote.it/warp";
 
 const proxy = new WarpProxy(
-        'wss://xxxxxxxx.connect.remote.it',   // Connection address - Service ID, WebSocket URL, or Link ID
-        {
-          router: 'connect.remote.it',        // WARP router, defaults to 'connect.remote.it'
-          credentials: 'path/to/credentials', // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
-          profile: 'MyProfile',               // Credentials profile name to use, defaults to 'DEFAULT'
-          host: '127.0.0.1',                  // Host to bind to, defaults to '127.0.0.1'
-          port: 2222,                         // Proxy port, defaults to first available port in the range below
-          minPort: 30000,                     // Lowest port for available port search, defaults to 30000
-          maxPort: 39999,                     // Highest port for available port search, defaults to 39999
-          timeout: 10000,                     // Timeout for WebSocket connection, defaults to 10000 ms
-          userAgent: 'my-application/1.0',    // Custom user agent, defaults to 'remoteit-warp/1.0'
-          pingInterval: 60000                 // WebSocket ping interval, defaults to 60000 ms
-        }
-)
+  "MNETSJSW", // target ID
+  {
+    router: "connect.remote.it", // WARP router, defaults to 'connect.remote.it'
+    keyId: "J6RBX6GAXLSAIQX6GH3I", // Key id to use for authentication, defaults to process.env.R3_ACCESS_KEY_ID
+    secret: "2yw6NJA7q6jXdJvDbKBO4j9wi08o/ckR1X8CItUG", // Secret to use for authentication, defaults to process.env.R3_SECRET_ACCESS_KEY
+    credentials: "path/to/credentials", // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
+    profile: "MyProfile", // Credential profile name to use, defaults to 'DEFAULT'
+    host: "127.0.0.1", // Host to bind to, defaults to '127.0.0.1'
+    port: 2222, // Proxy port, defaults to first available port in the range below
+    minPort: 30000, // Lowest port for available port search, defaults to 30000
+    maxPort: 39999, // Highest port for available port search, defaults to 39999
+    timeout: 10000, // Timeout for WebSocket connection, defaults to 10000 ms
+    userAgent: "my-application/1.0", // Custom user agent, defaults to 'remoteit-warp/1.0'
+    pingInterval: 60000, // WebSocket ping interval, defaults to 60000 ms
+  }
+);
 
 // Rest of the usage remains the same
 ```
 
-## Credential File Structure :key:
+## Credentials :key:
+
+Credentials can be provided in three ways:
+
+1. **Environment Variables**: You can set your Remote.It credentials as environment variables (`R3_ACCESS_KEY_ID`
+   and `R3_SECRET_ACCESS_KEY`).
+
+2. **Constructor Options**: Alternatively, you can provide your credentials directly as options (`keyId` and `secret`)
+   in the constructor.
+
+3. **Credentials File**: For enhanced security, it is recommended to use a credentials file.
+
+If no credentials are specified, and the default Remote.It credentials file is not found, the connection will remain
+unauthenticated.
 
 The credential file is designed to store access keys for the Remote.It WARP service. This structure allows you to define
-multiple profiles, each with its own set of credentials. You can create and manage your keys in your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
+multiple profiles, each with its own set of credentials. You can create and manage your keys in
+your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
 The file is formatted in the INI style, where each section corresponds to a unique profile.
 
