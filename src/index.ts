@@ -20,7 +20,9 @@ const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
 
 export interface WarpOptions {
   router: string       // the Remote.It WARP router hostname
-  credentials: string  // path to Remote.It credentials file
+  keyId: string        // key id to use for authentication, defaults to process.env.R3_ACCESS_KEY_ID
+  secret: string       // secret to use for authentication, defaults to process.env.R3_SECRET_ACCESS_KEY
+  credentials: string  // path to the Remote.It credentials file
   profile: string      // profile name in the credentials file
   host: string         // host to bind to, defaults to localhost
   port?: number        // leave undefined to find an available port
@@ -33,6 +35,8 @@ export interface WarpOptions {
 
 const DEFAULT_OPTIONS: Partial<WarpOptions> = {
   router: 'connect.remote.it',
+  keyId: process.env.R3_ACCESS_KEY_ID,
+  secret: process.env.R3_SECRET_ACCESS_KEY,
   credentials: path.resolve(os.homedir(), '.remoteit/credentials'),
   profile: 'DEFAULT',
   host: '127.0.0.1',
@@ -46,11 +50,12 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
 export class WarpProxy {
   private readonly url: URL
   private readonly options: WarpOptions
+  private signature?: SigningKey | null
   private server!: Server
 
   constructor(target: string, options: Partial<WarpOptions> = {}) {
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
-    this.url = this.parseTarget(target)
+    this.url = this.parseURL(target)
   }
 
   async open(): Promise<number> {
@@ -59,6 +64,8 @@ export class WarpProxy {
     const port = this.options.port || await this.getNextAvailablePort()
 
     if (!port) throw new Error(`no available port found`)
+
+    this.signature = await this.getSignature()
 
     return new Promise<number>((resolve, reject) => {
       this.server
@@ -86,9 +93,9 @@ export class WarpProxy {
   }
 
   private async openTarget(): Promise<Duplex> {
-    const options = await signMessage(
+    const options = this.signature ? await signMessage(
       {
-        key: await this.getKey(),
+        key: this.signature,
         name: 'remoteit',
         fields: SIGNED_HEADERS
       },
@@ -100,7 +107,11 @@ export class WarpProxy {
           date: new Date().toUTCString()
         }
       }
-    )
+    ) : {
+      headers: {
+        'user-agent': this.options.userAgent
+      }
+    }
 
     const ws = new WebSocket(this.url, {
       ...options,
@@ -116,12 +127,12 @@ export class WarpProxy {
     return websocketStream(ws, {binary: true}).on('error', error => console.error(error))
   }
 
-  private parseTarget(target: string): URL {
-    if (!target) throw new Error(`Remote.It WARP URL or target ID required`)
+  private parseURL(target: string): URL {
+    if (!target) throw new Error(`Remote.It WARP target required`)
 
     const match = target.match(TARGET_REGEXP)
 
-    if (!match) throw new Error(`Remote.It WARP URL or target ID invalid: ${target}`)
+    if (!match) throw new Error(`Remote.It WARP target invalid: ${target}`)
 
     const {code, host} = match.groups || {}
 
@@ -132,35 +143,39 @@ export class WarpProxy {
     return new URL(`wss://${subdomain}.${this.options.router}`)
   }
 
-  private async getKey(): Promise<SigningKey> {
-    let {R3_ACCESS_KEY_ID, R3_SECRET_ACCESS_KEY} = process.env
+  private async getSignature(): Promise<SigningKey | null> {
+    let {keyId, secret} = this.options
 
-    if (!R3_ACCESS_KEY_ID || !R3_SECRET_ACCESS_KEY) {
-      const file = this.options.credentials
+    if (!keyId || !secret) {
+      let {credentials, profile} = this.options
 
-      if (!fs.existsSync(file)) throw new Error(`Remote.It credentials file not found: ${file}`)
+      if (!fs.existsSync(credentials)) {
+        console.error(`${credentials} not found, using unauthenticated access`)
 
-      let credentials = null
+        return null
+      }
+
+      let hash = null
 
       try {
-        credentials = ini.parse(fs.readFileSync(file, 'utf-8'))
+        hash = ini.parse(fs.readFileSync(credentials, 'utf-8'))
       } catch (error: any) {
         throw new Error(`Remote.It credentials file error: ${error.message}`)
       }
 
-      const profile = this.options.profile
+      const section = hash[profile]
 
-      const section = credentials[profile]
+      if (!section) throw new Error(`Remote.It credential profile not found: ${profile}`);
 
-      if (!section) throw new Error(`Remote.It profile not found: ${profile}`);
+      ({R3_ACCESS_KEY_ID: keyId, R3_SECRET_ACCESS_KEY: secret} = section)
 
-      ({R3_ACCESS_KEY_ID, R3_SECRET_ACCESS_KEY} = section)
+      if (!keyId) throw new Error(`Remote.It credentials missing: R3_ACCESS_KEY_ID`)
+      if (!secret) throw new Error(`Remote.It credentials missing: R3_SECRET_ACCESS_KEY`)
     }
 
-    if (!R3_ACCESS_KEY_ID) throw new Error(`Remote.It credentials missing: R3_ACCESS_KEY_ID`)
-    if (!R3_SECRET_ACCESS_KEY) throw new Error(`Remote.It credentials missing: R3_SECRET_ACCESS_KEY`)
+    console.error(`using key id: ${keyId}`)
 
-    return createSigner(Buffer.from(R3_SECRET_ACCESS_KEY, 'base64'), SIGNATURE_ALGORITHM, R3_ACCESS_KEY_ID)
+    return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
   }
 
   private async getNextAvailablePort(): Promise<number | null> {
