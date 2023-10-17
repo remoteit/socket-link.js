@@ -19,18 +19,18 @@ const SIGNATURE_ALGORITHM = 'hmac-sha256'
 const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
 
 export interface WarpOptions {
-  router: string       // the Remote.It WARP router hostname
-  keyId: string        // key id to use for authentication, defaults to process.env.R3_ACCESS_KEY_ID
-  secret: string       // secret to use for authentication, defaults to process.env.R3_SECRET_ACCESS_KEY
-  credentials: string  // path to the Remote.It credentials file
-  profile: string      // profile name in the credentials file
-  host: string         // host to bind to, defaults to localhost
-  port?: number        // leave undefined to find an available port
-  minPort: number      // minimum port to scan
-  maxPort: number      // minimum port to scan
-  timeout: number      // timeout, defaults to 5000 ms
-  userAgent: string    // user agent to use, defaults to remoteit-warp/1.0
-  pingInterval: number // ping interval, defaults to 60000 ms
+  router: string                              // the Remote.It WARP router hostname
+  keyId: string                               // authentication key id, defaults to process.env.R3_ACCESS_KEY_ID
+  secret: string                              // authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
+  credentials: string                         // path to the Remote.It credentials file
+  profile: string                             // credential profile name in the credentials file
+  host: string                                // host to bind to, defaults to localhost
+  port?: number                               // leave undefined to find an available port
+  minPort: number                             // minimum port to scan
+  maxPort: number                             // minimum port to scan
+  timeout: number                             // timeout, defaults to 5000 ms
+  headers: Record<string, string | string[]>  // optional headers
+  pingInterval: number                        // ping interval, defaults to 60000 ms
 }
 
 const DEFAULT_OPTIONS: Partial<WarpOptions> = {
@@ -43,7 +43,7 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
   minPort: 30000,
   maxPort: 39999,
   timeout: 5000,
-  userAgent: 'remoteit-warp/1.0',
+  headers: {},
   pingInterval: 60000
 }
 
@@ -93,33 +93,30 @@ export class WarpProxy {
   }
 
   private async openTarget(): Promise<Duplex> {
-    const options = this.signature ? await signMessage(
+    const request = {
+      method: 'GET',
+      url: this.url,
+      headers: {
+        date: new Date().toUTCString(),
+        'user-agent': 'remoteit-warp/1.0',
+        ...this.options.headers || {}
+      },
+      agent: new https.Agent({
+        timeout: this.options.timeout,
+        noDelay: true
+      })
+    }
+
+    const signed = this.signature ? await signMessage(
       {
         key: this.signature,
         name: 'remoteit',
         fields: SIGNED_HEADERS
       },
-      {
-        method: 'GET',
-        url: this.url,
-        headers: {
-          'user-agent': this.options.userAgent,
-          date: new Date().toUTCString()
-        }
-      }
-    ) : {
-      headers: {
-        'user-agent': this.options.userAgent
-      }
-    }
+      request as any
+    ) : request
 
-    const ws = new WebSocket(this.url, {
-      ...options,
-      agent: new https.Agent({
-        timeout: this.options.timeout,
-        noDelay: true
-      })
-    })
+    const ws = new WebSocket(this.url, signed)
 
     this.monitor(ws) // monitor WebSocket
 
@@ -150,7 +147,7 @@ export class WarpProxy {
       let {credentials, profile} = this.options
 
       if (!fs.existsSync(credentials)) {
-        console.error(`${credentials} not found, using unauthenticated access`)
+        console.error(`${credentials} not found, unauthenticated access`)
 
         return null
       }
@@ -172,8 +169,6 @@ export class WarpProxy {
       if (!keyId) throw new Error(`Remote.It credentials missing: R3_ACCESS_KEY_ID`)
       if (!secret) throw new Error(`Remote.It credentials missing: R3_SECRET_ACCESS_KEY`)
     }
-
-    console.error(`using key id: ${keyId}`)
 
     return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
   }
