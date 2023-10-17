@@ -113,7 +113,7 @@ export class WarpProxy {
         name: 'remoteit',
         fields: SIGNED_HEADERS
       },
-      request as any
+      request
     ) : request
 
     const ws = new WebSocket(this.url, signed)
@@ -141,6 +141,8 @@ export class WarpProxy {
   }
 
   private async getSignature(): Promise<SigningKey | null> {
+    if (this.options.headers?.authorization) return null // skip signature if authorization header is present
+
     let {keyId, secret} = this.options
 
     if (!keyId || !secret) {
