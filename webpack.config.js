@@ -17,7 +17,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js']
   },
   optimization: {
-    minimize: false
+    minimize: true
   },
   output: {
     filename: 'index.js',
