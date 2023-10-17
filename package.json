@@ -6,8 +6,11 @@
   },
   "version": "1.0.17",
   "description": "Remote.It WARP SDK/CLI",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/warp.js",
+  "types": "dist/warp.d.ts",
+  "bin": {
+    "warp": "dist/cli.js"
+  },
   "scripts": {
     "build": "webpack"
   },
@@ -45,6 +48,7 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-sources": "^3.2.3"
   }
 }

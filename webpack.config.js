@@ -1,9 +1,13 @@
+const {RawSource} = require('webpack-sources')
 const path = require('path')
 
 module.exports = {
   target: 'node',
   mode: 'production',
-  entry: './src/index.ts',
+  entry: {
+    warp: './src/warp.ts',
+    cli: './src/cli.ts'
+  },
   module: {
     rules: [
       {
@@ -16,12 +20,24 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js']
   },
-  optimization: {
-    minimize: true
-  },
   output: {
-    filename: 'index.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     library: {type: 'commonjs'}
-  }
+  },
+  plugins: [
+    {
+      apply: (compiler) => {
+        compiler.hooks.emit.tapAsync('AddShebangPlugin', (compilation, callback) => {
+          const assetName = 'cli.js'
+          if (compilation.assets[assetName]) {
+            let originalSource = compilation.assets[assetName].source()
+            originalSource = '#!/usr/bin/env node\n' + originalSource
+            compilation.assets[assetName] = new RawSource(originalSource)
+          }
+          callback()
+        })
+      }
+    }
+  ]
 }
