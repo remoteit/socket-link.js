@@ -20,7 +20,7 @@ const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
 
 export interface WarpOptions {
   router: string                              // the Remote.It WARP router hostname
-  keyId: string                               // authentication key id, defaults to process.env.R3_ACCESS_KEY_ID
+  keyId: string                               // authentication key ID, defaults to process.env.R3_ACCESS_KEY_ID
   secret: string                              // authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
   credentials: string                         // path to the Remote.It credentials file
   profile: string                             // credential profile name in the credentials file

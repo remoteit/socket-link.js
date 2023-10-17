@@ -1,17 +1,17 @@
 # warp :rocket:
 
-**warp** is a powerful SDK and CLI for integrating with the Remote.It WARP infrastructure. Whether you're setting up a
-one-time secure connection or architecting a complex network application, **warp** streamlines the process.
+**warp** is a powerful SDK and CLI for integrating with the **Remote.It** **WARP** infrastructure. Perfect
+for setting up a secure one-time connection or developing a complex network application, **warp** simplifies networking.
 
 [![npm version](https://badge.fury.io/js/%40remote.it%2Fwarp.svg)](https://www.npmjs.com/package/@remote.it/warp)
 
 ## Features :sparkles:
 
-- **Seamless Integration**: Securely connect with the Remote.It WARP infrastructure.
-- **Effortless Management**: Intuitive methods for connection setup and teardown.
-- **TypeScript-Powered**: A modern API for a clear development experience.
-- **Signature Authentication**: Authenticate securely with HTTP message signatures.
-- **TLS Encryption**: Protect your data in transit.
+- **Seamless Integration**: Securely connect to the **Remote.It** **WARP** infrastructure.
+- **Effortless Management**: Intuitive API for setting up and tearing down connections.
+- **TypeScript-Powered**: Modern language for the best development experience.
+- **Signature Authentication**: Secure authentication using HTTP signatures.
+- **TLS Encryption**: Ensure data protection while in transit.
 
 ## Installation :package:
 
@@ -21,7 +21,7 @@ npm i @remote.it/warp
 
 ## Basic Usage :computer:
 
-Setting up a WARP proxy is straightforward:
+Setting up a **WARP** proxy is straightforward:
 
 ```typescript
 import {WarpProxy} from '@remote.it/warp';
@@ -29,7 +29,7 @@ import {WarpProxy} from '@remote.it/warp';
 // Specify the target service and other optional parameters
 const proxy = new WarpProxy('MNETSJSW');
 
-// Activate the proxy and get the localhost port
+// Activate the proxy and retrieve the localhost port
 const port = await proxy.open();
 
 // Use the localhost port in your application
@@ -40,29 +40,32 @@ await proxy.close();
 
 ## Service Setup :dart:
 
-If you don't have a Remote.It account you can [sign up for free here](https://app.remote.it/#/sign-up). Then continue to setup the target service:
+Don't have a **Remote.It** account? [Sign up for free](https://app.**Remote.It**/#/sign-up). Then, follow these steps to
+configure your target service:
 
-1. Log into Remote.It
-2. Add a new device with the "+" button
-3. Select your device type
-4. Copy the install command
-5. Run it on your device or another device on it's local network
-6. When the device appears in the app you can configure the port to want to connect to by service type (SSH, HTTPS, Postgresql ... etc) or manually
-7. Or for a networked service you can set it up to use the network IP address and port to forward
+1. Log in to the **Remote.It** portal or desktop.
+2. Click the `+` button to add a new device.
+3. Select your device type.
+4. Copy the installation command.
+5. Run the command on your device.
+6. Once the device appears in the application, configure the port you wish to connect to by selecting a service type (
+   SSH,
+   HTTPS, Postgresql, etc.) or manually entering it.
+7. For networked services, specify the network IP address and port to forward.
 
 ## Advanced Usage :wrench:
 
-If you need more control or want to integrate with specific services, **warp** provides advanced configurations and options:
+For more control or specific service integration, **warp** offers advanced configuration options:
 
 ```typescript
 import {WarpProxy} from '@remote.it/warp'
 
 const proxy = new WarpProxy(
-  'MNETSJSW',                                           // Service Key (Target ID)
+  'MNETSJSW',                                           // Service Key, required
   {
     router: 'connect.remote.it',                        // WARP router, defaults to 'connect.remote.it'
-    keyId: 'J6RBX6GAXLSAIQX6GH3I',                      // Key id to use for authentication, defaults to process.env.R3_ACCESS_KEY_ID
-    secret: '2yw6NJA7q6jXdJvDbKBO4j9wi08o/ckR1X8CItUG', // Secret to use for authentication, defaults to process.env.R3_SECRET_ACCESS_KEY
+    keyId: 'J6RBX6GAXLSAIQX6GH3I',                      // Authentication key ID, defaults to process.env.R3_ACCESS_KEY_ID
+    secret: '2yw6NJA7q6jXdJvDbKBO4j9wi08o/ckR1X8CItUG', // Authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
     credentials: 'path/to/credentials',                 // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
     profile: 'MyProfile',                               // Credential profile name to use, defaults to 'DEFAULT'
     host: '127.0.0.1',                                  // Host to bind to, defaults to '127.0.0.1'
@@ -79,17 +82,21 @@ const proxy = new WarpProxy(
 
 ## Authentication :key:
 
-Connections are authenticated using a combination of a _Service Key_ and _Credentials_. They can be combined in a variety of ways to suit your needs, but one is required for a successful connection.
+Connections are authenticated using a combination of a _Service Key_ and _Credentials_. They can be combined in a
+variety of ways to suit your needs, but one is required for a successful connection.
 
-A **Service Key** is a unique service level identifier. It can be found in the Remote.It app on the target service details page.
+A **Service Key** is a unique service level identifier. It can be found in the **Remote.It** app on the target service
+details page.
 
-A **Credentials** file is designed to store account level access keys for an application. You can create and manage your keys in your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
+A **Credentials** file is designed to store account level access keys for an application. You can create and manage your
+keys in your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
 ### Service Key
 
 Creating a basic connection only requires a `Service Key`
 
-This key provides the authentication and identity needed to connect. Keep it protected and do not commit it to your codebase. It can be revoked at any time and is unique to each service.
+This key provides the authentication and identity needed to connect. Keep it protected and do not commit it to your
+codebase. It can be revoked at any time and is unique to each service.
 
 #### Sample
 
@@ -97,24 +104,25 @@ This key provides the authentication and identity needed to connect. Keep it pro
 MNETSJSW
 ```
 
-Generate a key in the Remote.It app on the target service details page.
+Generate a key in the **Remote.It** app on the target service details page.
 
 ### Credentials
 
 Credentials can be provided in three ways:
 
-1. **Environment Variables**: You can set your Remote.It credentials as environment variables (`R3_ACCESS_KEY_ID`
-   and `R3_SECRET_ACCESS_KEY`).
+1. **Environment Variables**: You can set your **Remote.It** credentials as environment variables: `R3_ACCESS_KEY_ID`
+   and `R3_SECRET_ACCESS_KEY`.
 
-2. **Constructor Options**: Alternatively, you can provide your credentials directly as options (`keyId` and `secret`)
-   in the constructor.
+2. **Configuration Options**: Alternatively, you can provide your credentials as configuration options: `keyId`
+   and `secret`.
 
-3. **Credentials File**: For enhanced security, it is recommended to use a credentials file.
+3. **Credentials File**: For enhanced security, it is recommended to use a separate credentials file.
 
-If no credentials are specified, and the default Remote.It credentials file is not found, the connection will remain
+If no credentials are specified, and the default **Remote.It** credentials file is not found, the connection will remain
 unauthenticated.
 
-The credential file is designed to store access keys for the Remote.It WARP service. This structure allows you to define
+The credential file is designed to store access keys for the **Remote.It** **WARP** service. This structure allows you
+to define
 multiple profiles, each with its own set of credentials. You can create and manage your keys in
 your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
@@ -137,7 +145,7 @@ R3_SECRET_ACCESS_KEY=YourSecretAccessKey
 
 ```credentials
 [DEFAULT]
-# Remote.It credentials
+# default credentials
 R3_ACCESS_KEY_ID=CKP6FWW5POAKHTZAAKPI
 R3_SECRET_ACCESS_KEY=rSfaY4sj07jZV8+GYEjx/PSiln9x9t/8zZbdpgMS
 
@@ -160,9 +168,9 @@ Dive deep into the features and configurations in our [official documentation](h
 
 ## Support and Contribution :raising_hand:
 
-Run into issues? Have ideas? We value your feedback! Open an [issue](https://github.com/remoteit/warp-js/issues) or
-shoot a pull request.
+Run into problems? or have suggestions? Your feedback is invaluable. Open
+an [issue](https://github.com/remoteit/warp-js/issues) or submit a pull request.
 
 ## License :page_facing_up:
 
-MIT Licensed. Detailed info in [LICENSE.md](LICENSE.md).
+Licensed under MIT. For details, see [LICENSE.md](LICENSE.md).
