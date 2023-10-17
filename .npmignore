@@ -133,3 +133,4 @@ dist
 /.nvmrc
 /tsconfig.json
 /webpack.config.js
+/test/
