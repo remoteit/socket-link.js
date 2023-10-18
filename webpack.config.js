@@ -25,6 +25,9 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     library: {type: 'commonjs'}
   },
+  optimization: {
+    minimize: true
+  },
   plugins: [
     {
       apply: (compiler) => {

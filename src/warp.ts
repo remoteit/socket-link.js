@@ -7,10 +7,7 @@ import * as ini from 'ini'
 import {createServer, Server, Socket} from 'net'
 import * as os from 'os'
 import * as path from 'path'
-import pump from 'pump'
-import {Duplex} from 'stream'
 import * as tcpPortUsed from 'tcp-port-used'
-import websocketStream from 'websocket-stream'
 import WebSocket from 'ws'
 
 const TARGET_REGEXP = /^(?:(?<code>[\w-:]+)|([^:]+:\/\/)?(?<host>.+))$/
@@ -82,17 +79,21 @@ export class WarpProxy {
   }
 
   private async tunnel(client: Socket) {
-    const target = await this.openTarget()
+    const ws = await this.openTarget()
 
-    const onError = (error?: Error) => error && console.error(error)
+    ws.on('error', error => console.error(`WS error ${error.message}`))
+      .once('open', () => {
+        this.monitor(ws) // start monitoring
 
-    target.once('connect', () => {
-      pump(client, target, onError)
-      pump(target, client, onError)
-    })
+        ws.on('message', (data: Buffer) => data.length && client.write(data))
+          .on('close', () => client.end())
+
+        client.on('data', (data: Buffer) => data.length && ws.send(data))
+              .on('end', () => ws.close())
+      })
   }
 
-  private async openTarget(): Promise<Duplex> {
+  private async openTarget(): Promise<WebSocket> {
     const request = {
       method: 'GET',
       url: this.url,
@@ -116,12 +117,7 @@ export class WarpProxy {
       request
     ) : request
 
-    const ws = new WebSocket(this.url, signed)
-
-    this.monitor(ws) // monitor WebSocket
-
-    // @ts-ignore
-    return websocketStream(ws, {binary: true}).on('error', error => console.error(error))
+    return new WebSocket(this.url, signed)
   }
 
   private parseURL(target: string): URL {
@@ -188,7 +184,9 @@ export class WarpProxy {
   private monitor(ws: WebSocket) {
     let alive = true
 
-    ws.on('pong', () => {alive = true})
+    ws.on('pong', () => {
+      alive = true
+    })
 
     const interval = setInterval(() => {
       if (!alive) return ws.terminate()
