@@ -136,14 +136,14 @@ R3_SECRET_ACCESS_KEY=YourSecretAccessKey
 ```
 
 - **ProfileName**: Represents the name of the profile, allowing you to differentiate between various sets of
-  credentials. By default, the profile is named `DEFAULT`.
+  credentials. By default, the profile named `DEFAULT` will be used or the top level credentials if no default profile
+  is present.
 - **R3_ACCESS_KEY_ID**: Your designated Access Key ID for authentication.
 - **R3_SECRET_ACCESS_KEY**: Your Secret Access Key used for authentication.
 
 #### Sample
 
 ```credentials
-[DEFAULT]
 # default credentials
 R3_ACCESS_KEY_ID=CKP6FWW5POAKHTZAAKPI
 R3_SECRET_ACCESS_KEY=rSfaY4sj07jZV8+GYEjx/PSiln9x9t/8zZbdpgMS
