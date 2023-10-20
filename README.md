@@ -72,7 +72,6 @@ const proxy = new WarpProxy(
     port: 2222,                                         // Proxy port, defaults to first available port in the range below
     minPort: 30000,                                     // Lowest port for available port search, defaults to 30000
     maxPort: 39999,                                     // Highest port for available port search, defaults to 39999
-    timeout: 5000,                                      // Timeout for WebSocket connection, defaults to 5000 ms
     pingInterval: 60000                                 // WebSocket ping interval, defaults to 60000 ms
   }
 )

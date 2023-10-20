@@ -1,22 +1,31 @@
-import * as fs from 'fs'
+import {LookupAddress, LookupAllOptions} from 'dns'
+import {existsSync, readFileSync} from 'fs'
 import {createSigner} from 'http-message-signatures/lib/algorithm'
 import {signMessage} from 'http-message-signatures/lib/httpbis'
 import {SigningKey} from 'http-message-signatures/lib/types'
-import * as https from 'https'
-import * as ini from 'ini'
-import {createServer, Server, Socket} from 'net'
-import * as os from 'os'
-import * as path from 'path'
-import * as tcpPortUsed from 'tcp-port-used'
+import {parse} from 'ini'
+import {createServer, isIP, Server, Socket} from 'net'
+import {LookupFunction} from 'node:net'
+import {check} from 'tcp-port-used'
 import WebSocket from 'ws'
-
-const TARGET_REGEXP = /^(?:(?<code>[\w-:]+)|([^:]+:\/\/)?(?<host>.+))$/
-
-const SIGNATURE_ALGORITHM = 'hmac-sha256'
-const SIGNED_HEADERS = ['@method', '@authority', '@target-uri', 'date']
+import {
+  CONNECT_TIMEOUT,
+  DEFAULT_CREDENTIALS,
+  DEFAULT_PING_INTERVAL,
+  DEFAULT_PROFILE,
+  DEFAULT_ROUTER,
+  LOCALHOST,
+  MAX_SCAN_PORT,
+  MIN_SCAN_PORT,
+  SIGNATURE_ALGORITHM,
+  SIGNED_HEADERS,
+  TARGET_REGEXP,
+  USER_AGENT
+} from './constants'
+import ErrnoException = NodeJS.ErrnoException
 
 export interface WarpOptions {
-  router: string                              // the Remote.It WARP router hostname
+  router: string                              // Remote.It WARP router hostname or IP address
   keyId: string                               // authentication key ID, defaults to process.env.R3_ACCESS_KEY_ID
   secret: string                              // authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
   credentials: string                         // path to the Remote.It credentials file
@@ -25,34 +34,33 @@ export interface WarpOptions {
   port?: number                               // leave undefined to find an available port
   minPort: number                             // minimum port to scan
   maxPort: number                             // minimum port to scan
-  timeout: number                             // timeout, defaults to 5000 ms
   headers: Record<string, string | string[]>  // optional headers
   pingInterval: number                        // ping interval, defaults to 60000 ms
 }
 
 const DEFAULT_OPTIONS: Partial<WarpOptions> = {
-  router: 'connect.remote.it',
+  router: DEFAULT_ROUTER,
   keyId: process.env.R3_ACCESS_KEY_ID,
   secret: process.env.R3_SECRET_ACCESS_KEY,
-  credentials: path.resolve(os.homedir(), '.remoteit/credentials'),
-  profile: 'DEFAULT',
-  host: '127.0.0.1',
-  minPort: 30000,
-  maxPort: 39999,
-  timeout: 5000,
+  credentials: DEFAULT_CREDENTIALS,
+  profile: DEFAULT_PROFILE,
+  host: LOCALHOST,
+  minPort: MIN_SCAN_PORT,
+  maxPort: MAX_SCAN_PORT,
   headers: {},
-  pingInterval: 60000
+  pingInterval: DEFAULT_PING_INTERVAL
 }
 
 export class WarpProxy {
   private readonly url: URL
+  private readonly address?: string
   private readonly options: WarpOptions
   private signature?: SigningKey | null
   private server!: Server
 
   constructor(target: string, options: Partial<WarpOptions> = {}) {
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
-    this.url = this.parseURL(target)
+    ({url: this.url, address: this.address} = this.parseURL(target))
   }
 
   async open(): Promise<number> {
@@ -79,18 +87,46 @@ export class WarpProxy {
   }
 
   private async tunnel(client: Socket) {
+    const start = Date.now()
+
+    const onError = (location: string) => (error?: Error) => error && console.error(`${location}: ${error.message} (${Date.now() - start} ms)`)
+
+    client.on('error', onError('client'))
+
     const ws = await this.openTarget()
 
-    ws.on('error', error => console.error(`WS error ${error.message}`))
-      .once('open', () => {
-        this.monitor(ws) // start monitoring
+    ws.on('error', onError('WS'))
 
-        ws.on('message', (data: Buffer) => data.length && client.write(data))
-          .on('close', () => client.end())
+    const interval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.ping()  // Ping frame to keep the connection alive
+    }, this.options.pingInterval)
 
-        client.on('data', (data: Buffer) => data.length && ws.send(data))
-              .on('end', () => ws.close())
+    ws.on('close', () => clearInterval(interval))  // Clear the interval when the socket is closed
+
+    ws.on('open', () => {
+      ws.on('message', (data: Buffer) => client.write(data, onError('write')))
+
+      ws.on('close', (code: number, reason: Buffer) => {
+        console.error(`WS closed: ${code} ${reason.toString()}`)
+        client.end()
       })
+
+      client.on('data', (data: Buffer) => ws.send(data, {binary: true, compress: true}, onError('send')))
+
+      client.on('end', () => {
+        console.error('client closed')
+        ws.close()
+      })
+    })
+  }
+
+  private lookup(address?: string): LookupFunction | undefined {
+    if (!address) return undefined
+
+    return (hostname: string, options: LookupAllOptions, callback: (err: ErrnoException | null, addresses: LookupAddress[]) => void) => callback(null, [{
+      family: isIP(address),
+      address: address
+    }])
   }
 
   private async openTarget(): Promise<WebSocket> {
@@ -99,13 +135,12 @@ export class WarpProxy {
       url: this.url,
       headers: {
         date: new Date().toUTCString(),
-        'user-agent': 'remoteit-warp/1.0',
+        'user-agent': USER_AGENT,
         ...this.options.headers || {}
       },
-      agent: new https.Agent({
-        timeout: this.options.timeout,
-        noDelay: true
-      })
+      perMessageDeflate: true,
+      lookup: this.lookup(this.address),
+      timeout: CONNECT_TIMEOUT
     }
 
     const signed = this.signature ? await signMessage(
@@ -120,7 +155,10 @@ export class WarpProxy {
     return new WebSocket(this.url, signed)
   }
 
-  private parseURL(target: string): URL {
+  private parseURL(target: string): {
+    url: URL,
+    address?: string
+  } {
     if (!target) throw new Error(`Remote.It WARP target required`)
 
     const match = target.match(TARGET_REGEXP)
@@ -129,11 +167,10 @@ export class WarpProxy {
 
     const {code, host} = match.groups || {}
 
-    if (host) return new URL(`wss://${host}`)
+    const [router, address] = isIP(this.options.router) ? [DEFAULT_ROUTER, this.options.router] : [this.options.router]
+    const domain = host || `${code.replace(/[^0-9a-z]+/ig, '').toLowerCase()}.${router}`
 
-    const subdomain = code.replace(/[^0-9a-z]+/ig, '').toLowerCase()
-
-    return new URL(`wss://${subdomain}.${this.options.router}`)
+    return {url: new URL(`https://${domain}`), address}
   }
 
   private async getSignature(): Promise<SigningKey | null> {
@@ -144,7 +181,7 @@ export class WarpProxy {
     if (!keyId || !secret) {
       let {credentials, profile} = this.options
 
-      if (!fs.existsSync(credentials)) {
+      if (!existsSync(credentials)) {
         console.error(`${credentials} not found, unauthenticated access`)
 
         return null
@@ -153,7 +190,7 @@ export class WarpProxy {
       let hash = null
 
       try {
-        hash = ini.parse(fs.readFileSync(credentials, 'utf-8'))
+        hash = parse(readFileSync(credentials, 'utf-8'))
       } catch (error: any) {
         throw new Error(`Remote.It credentials file error: ${error.message}`)
       }
@@ -175,27 +212,9 @@ export class WarpProxy {
     const {host, minPort, maxPort} = this.options
 
     for (let port: number = minPort; port <= maxPort; port++) {
-      if (!await tcpPortUsed.check(port, host)) return port
+      if (!await check(port, host)) return port
     }
 
     return null
-  }
-
-  private monitor(ws: WebSocket) {
-    let alive = true
-
-    ws.on('pong', () => {
-      alive = true
-    })
-
-    const interval = setInterval(() => {
-      if (!alive) return ws.terminate()
-
-      alive = false
-
-      ws.ping()
-    }, this.options.pingInterval)
-
-    ws.once('close', () => clearInterval(interval))
   }
 }
