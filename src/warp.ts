@@ -83,36 +83,31 @@ export class WarpProxy {
   }
 
   private async tunnel(client: Socket) {
-    const start = Date.now()
-
-    const onError = (location: string) => (error?: Error) => error && console.error(`${location}: ${error.message} (${Date.now() - start} ms)`)
-
-    client.on('error', onError('client'))
+    client.on('error', (error: Error) => console.error(error))
 
     const ws = await this.openTarget()
 
-    ws.on('error', onError('WS'))
-
-    const interval = setInterval(() => {
+    const ping = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) ws.ping()  // Ping frame to keep the connection alive
     }, this.options.pingInterval)
 
-    ws.on('close', () => clearInterval(interval))  // Clear the interval when the socket is closed
+    ws.on('error', (error: Error) => console.error(error))
+
+    ws.on('close', () => {
+      clearInterval(ping)
+      client.end()
+    })
+
+    client.on('end', () => ws.close())
+
+    client.pause()
 
     ws.on('open', () => {
-      ws.on('message', (data: Buffer) => client.write(data, onError('write')))
+      ws.on('message', (data: Buffer) => client.write(data))
 
-      ws.on('close', (code: number, reason: Buffer) => {
-        console.error(`WS closed: ${code} ${reason.toString()}`)
-        client.end()
-      })
+      client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
 
-      client.on('data', (data: Buffer) => ws.send(data, {binary: true, compress: true}, onError('send')))
-
-      client.on('end', () => {
-        console.error('client closed')
-        ws.close()
-      })
+      client.resume()
     })
   }
 
