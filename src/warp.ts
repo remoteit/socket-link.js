@@ -172,7 +172,9 @@ export class WarpProxy {
         throw new Error(`Remote.It credentials file error: ${error.message}`)
       }
 
-      const section = hash[profile]
+      const upper = profile?.toUpperCase()
+      const fallback = !upper || upper === DEFAULT_PROFILE ? hash : undefined
+      const section = Object.entries(hash).find(([key, _]) => key.toUpperCase() === upper)?.[1] || fallback
 
       if (!section) throw new Error(`Remote.It credential profile not found: ${profile}`);
 

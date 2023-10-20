@@ -27,20 +27,24 @@ import {WarpProxy} from './warp'
     .option('--credentials <credentials>', 'path to the Remote.It credentials file', DEFAULT_CREDENTIALS)
     .option('--profile <profile>', 'credential profile name in the credentials file', DEFAULT_PROFILE)
     .action(async (target, template, options) => {
-      const proxy = new WarpProxy(target, options)
+      try {
+        const proxy = new WarpProxy(target, options)
 
-      const port = await proxy.open()
+        const port = await proxy.open()
 
-      const command = template.map((arg: string) => format(arg, {host: options.host, port}))
+        const command = template.map((arg: string) => format(arg, {host: options.host, port}))
 
-      await new Promise((resolve, reject) => {
-        const process = spawn(command.shift(), command, {stdio: 'inherit'})
+        await new Promise((resolve, reject) => {
+          const process = spawn(command.shift(), command, {stdio: 'inherit'})
 
-        process.on('exit', resolve)
-        process.on('error', reject)
-      })
+          process.on('exit', resolve)
+          process.on('error', reject)
+        })
 
-      await proxy.close()
+        await proxy.close()
+      } catch (error: any) {
+        console.error(`ERROR: ${error.message || error}`)
+      }
     })
     .parse()
 })()
