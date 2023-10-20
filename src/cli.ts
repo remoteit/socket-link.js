@@ -19,6 +19,7 @@ import {WarpProxy} from './warp'
     .name(PROGRAM_NAME)
     .description(PROGRAM_DESCRIPTION)
     .version(PROGRAM_VERSION)
+    .usage('<target> -- ssh -p {port} [args...] localhost')
     .argument('<target>', 'the target service key')
     .argument('[command...]', 'command line to execute')
     .option('-h, --host <host>', 'host to bind to', LOCALHOST)
