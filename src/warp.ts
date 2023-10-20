@@ -1,11 +1,9 @@
-import {LookupAddress, LookupAllOptions} from 'dns'
 import {existsSync, readFileSync} from 'fs'
 import {createSigner} from 'http-message-signatures/lib/algorithm'
 import {signMessage} from 'http-message-signatures/lib/httpbis'
 import {SigningKey} from 'http-message-signatures/lib/types'
 import {parse} from 'ini'
-import {createServer, isIP, Server, Socket} from 'net'
-import {LookupFunction} from 'node:net'
+import {createServer, Server, Socket} from 'net'
 import {check} from 'tcp-port-used'
 import WebSocket from 'ws'
 import {
@@ -22,10 +20,9 @@ import {
   TARGET_REGEXP,
   USER_AGENT
 } from './constants'
-import ErrnoException = NodeJS.ErrnoException
 
 export interface WarpOptions {
-  router: string                              // Remote.It WARP router hostname or IP address
+  router: string                              // Remote.It WARP router hostname
   keyId: string                               // authentication key ID, defaults to process.env.R3_ACCESS_KEY_ID
   secret: string                              // authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
   credentials: string                         // path to the Remote.It credentials file
@@ -53,14 +50,13 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
 
 export class WarpProxy {
   private readonly url: URL
-  private readonly address?: string
   private readonly options: WarpOptions
   private signature?: SigningKey | null
   private server!: Server
 
   constructor(target: string, options: Partial<WarpOptions> = {}) {
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
-    ({url: this.url, address: this.address} = this.parseURL(target))
+    this.url = this.parseURL(target)
   }
 
   async open(): Promise<number> {
@@ -120,15 +116,6 @@ export class WarpProxy {
     })
   }
 
-  private lookup(address?: string): LookupFunction | undefined {
-    if (!address) return undefined
-
-    return (hostname: string, options: LookupAllOptions, callback: (err: ErrnoException | null, addresses: LookupAddress[]) => void) => callback(null, [{
-      family: isIP(address),
-      address: address
-    }])
-  }
-
   private async openTarget(): Promise<WebSocket> {
     const request = {
       method: 'GET',
@@ -139,7 +126,6 @@ export class WarpProxy {
         ...this.options.headers || {}
       },
       perMessageDeflate: true,
-      lookup: this.lookup(this.address),
       timeout: CONNECT_TIMEOUT
     }
 
@@ -155,10 +141,7 @@ export class WarpProxy {
     return new WebSocket(this.url, signed)
   }
 
-  private parseURL(target: string): {
-    url: URL,
-    address?: string
-  } {
+  private parseURL(target: string): URL {
     if (!target) throw new Error(`Remote.It WARP target required`)
 
     const match = target.match(TARGET_REGEXP)
@@ -167,10 +150,9 @@ export class WarpProxy {
 
     const {code, host} = match.groups || {}
 
-    const [router, address] = isIP(this.options.router) ? [DEFAULT_ROUTER, this.options.router] : [this.options.router]
-    const domain = host || `${code.replace(/[^0-9a-z]+/ig, '').toLowerCase()}.${router}`
+    const domain = host || `${code.replace(/[^0-9a-z]+/ig, '').toLowerCase()}.${(this.options.router)}`
 
-    return {url: new URL(`https://${domain}`), address}
+    return new URL(`https://${domain}`)
   }
 
   private async getSignature(): Promise<SigningKey | null> {

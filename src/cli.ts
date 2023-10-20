@@ -23,7 +23,7 @@ import {WarpProxy} from './warp'
     .argument('[command...]', 'command line to execute')
     .option('-h, --host <host>', 'host to bind to', LOCALHOST)
     .option('-p, --port <port>', 'port number')
-    .option('--router <router>', 'Remote.It WARP router hostname or IP address', DEFAULT_ROUTER)
+    .option('--router <router>', 'Remote.It WARP router hostname', DEFAULT_ROUTER)
     .option('--credentials <credentials>', 'path to the Remote.It credentials file', DEFAULT_CREDENTIALS)
     .option('--profile <profile>', 'credential profile name in the credentials file', DEFAULT_PROFILE)
     .action(async (target, template, options) => {
