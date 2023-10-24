@@ -9,6 +9,7 @@ import {check} from 'tcp-port-used'
 import WebSocket from 'ws'
 import {
   CONNECT_TIMEOUT,
+  DEBUG_ROUTER,
   DEFAULT_CREDENTIALS,
   DEFAULT_PING_INTERVAL,
   DEFAULT_PROFILE,
@@ -35,6 +36,7 @@ export interface WarpOptions {
   maxPort: number                             // minimum port to scan
   headers: Record<string, string | string[]>  // optional headers
   pingInterval: number                        // ping interval, defaults to 60000 ms
+  debug?: boolean                             // enable debug output
 }
 
 const DEFAULT_OPTIONS: Partial<WarpOptions> = {
@@ -47,7 +49,8 @@ const DEFAULT_OPTIONS: Partial<WarpOptions> = {
   minPort: MIN_SCAN_PORT,
   maxPort: MAX_SCAN_PORT,
   headers: {},
-  pingInterval: DEFAULT_PING_INTERVAL
+  pingInterval: DEFAULT_PING_INTERVAL,
+  debug: false
 }
 
 export class WarpProxy {
@@ -58,12 +61,16 @@ export class WarpProxy {
   private socket?: dgram.Socket
 
   constructor(target: string, options: Partial<WarpOptions> = {}) {
+    if (options.debug) options.router ||= DEBUG_ROUTER
+
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
     this.url = this.parseURL(target)
   }
 
   async open(): Promise<number> {
     this.signature = await this.getSignature()
+
+    if (this.options.debug) console.error('WARP: %o', this.options)
 
     return this.options.udp ? this.udp() : this.tcp()
   }
@@ -115,7 +122,11 @@ export class WarpProxy {
 
             ws.on('close', () => map.delete(key))
               .on('message', (data: Buffer) => this.socket!.send(data, remote.port, remote.address))
-              .on('open', () => ws!.send(message, {binary: true}))
+              .on('open', () => {
+                if (this.options.debug) console.error('WARP: connected')
+
+                ws!.send(message, {binary: true})
+              })
           }
         })
 
@@ -134,6 +145,8 @@ export class WarpProxy {
     ws.on('close', () => client.end())
       .on('message', (data: Buffer) => client.write(data))
       .on('open', () => {
+        if (this.options.debug) console.error('WARP: connected')
+
         client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
         client.resume()
       })
@@ -148,7 +161,7 @@ export class WarpProxy {
         'user-agent': USER_AGENT,
         ...this.options.headers || {}
       },
-      perMessageDeflate: true,
+      perMessageDeflate: false,
       timeout: CONNECT_TIMEOUT
     }
 
@@ -160,6 +173,8 @@ export class WarpProxy {
       },
       request
     ) : request
+
+    if (this.options.debug) console.error('WARP: opening %s', this.url)
 
     const ws = new WebSocket(this.url, signed)
 

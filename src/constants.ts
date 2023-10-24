@@ -10,6 +10,7 @@ export const PROGRAM_DESCRIPTION: string = 'Remote.It WARP CLI'
 export const USER_AGENT: string = 'remoteit-warp/1.0'
 
 export const DEFAULT_ROUTER: string = 'connect.remote.it'
+export const DEBUG_ROUTER: string = 'dev-connect.remote.it'
 
 export const DEFAULT_CREDENTIALS: string = resolve(homedir(), '.remoteit/credentials')
 export const DEFAULT_PROFILE: string = 'DEFAULT'
