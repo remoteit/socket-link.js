@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git+https://github.com/remoteit/warp-js.git"
   },
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Remote.It WARP SDK/CLI",
   "main": "dist/warp.js",
   "types": "dist/warp.d.ts",
