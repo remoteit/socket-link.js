@@ -1,5 +1,5 @@
 import {spawn} from 'child_process'
-import {Command} from 'commander'
+import {Command, Option} from 'commander'
 import format from 'string-template'
 import {
   DEFAULT_CREDENTIALS,
@@ -22,7 +22,8 @@ import {WarpProxy} from './warp'
     .argument('<target>', 'the target service key')
     .argument('[command...]', 'command line to execute')
     .option('-h, --host <host>', 'host to bind to', LOCALHOST)
-    .option('-p, --port <port>', 'port number')
+    .addOption(new Option('-p, --port <port>', 'TCP port number').argParser(parseInt))
+    .addOption(new Option('-u, --udp <port>', 'UDP port number').argParser(parseInt).conflicts('port'))
     .option('--router <router>', 'Remote.It WARP router hostname', DEFAULT_ROUTER)
     .option('--credentials <credentials>', 'path to the Remote.It credentials file', DEFAULT_CREDENTIALS)
     .option('--profile <profile>', 'credential profile name in the credentials file', DEFAULT_PROFILE)

@@ -1,9 +1,10 @@
+import * as dgram from 'dgram'
 import {existsSync, readFileSync} from 'fs'
 import {createSigner} from 'http-message-signatures/lib/algorithm'
 import {signMessage} from 'http-message-signatures/lib/httpbis'
 import {SigningKey} from 'http-message-signatures/lib/types'
 import {parse} from 'ini'
-import {createServer, Server, Socket} from 'net'
+import * as net from 'net'
 import {check} from 'tcp-port-used'
 import WebSocket from 'ws'
 import {
@@ -29,6 +30,7 @@ export interface WarpOptions {
   profile: string                             // credential profile name in the credentials file
   host: string                                // host to bind to, defaults to localhost
   port?: number                               // leave undefined to find an available port
+  udp?: number                                // UDP proxy
   minPort: number                             // minimum port to scan
   maxPort: number                             // minimum port to scan
   headers: Record<string, string | string[]>  // optional headers
@@ -52,7 +54,8 @@ export class WarpProxy {
   private readonly url: URL
   private readonly options: WarpOptions
   private signature?: SigningKey | null
-  private server!: Server
+  private server?: net.Server
+  private socket?: dgram.Socket
 
   constructor(target: string, options: Partial<WarpOptions> = {}) {
     this.options = {...DEFAULT_OPTIONS, ...options} as WarpOptions
@@ -60,55 +63,80 @@ export class WarpProxy {
   }
 
   async open(): Promise<number> {
-    this.server = createServer({noDelay: true})
+    this.signature = await this.getSignature()
 
+    return this.options.udp ? this.udp() : this.tcp()
+  }
+
+  async close(): Promise<void> {
+    await Promise.all([
+      new Promise<void>((resolve, reject) => this.server?.close(error => error ? reject(error) : resolve())),
+      new Promise<void>((resolve) => this.socket?.close(() => resolve()))
+    ])
+  }
+
+  async tcp(): Promise<number> {
     const port = this.options.port || await this.getNextAvailablePort()
 
     if (!port) throw new Error(`no available port found`)
 
-    this.signature = await this.getSignature()
+    this.server = net.createServer({noDelay: true})
 
-    return new Promise<number>((resolve, reject) => {
-      this.server
-          .on('connection', socket => this.tunnel(socket))
-          .on('error', reject)
-          .listen(port, () => resolve(port))
+    this.server
+        .on('connection', socket => this.tunnel(socket))
+        .on('error', (error: Error) => console.error(error))
+
+    return new Promise<number>((resolve) => {
+      this.server!.listen(port, this.options.host, () => resolve(port))
     })
   }
 
-  async close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.server?.close(error => error ? reject(error) : resolve())
+  async udp(): Promise<number> {
+    const port = this.options.udp
+
+    const map = new Map<string, WebSocket>()
+
+    this.socket = dgram.createSocket('udp4')
+
+    this.socket
+        .on('error', (error: Error) => console.error(error))
+        .on('close', () => {
+          for (const ws of map.values()) ws.close() // close all open connections
+        })
+        .on('message', async (message: Buffer, remote: dgram.RemoteInfo) => {
+          const key = `${remote.address}:${remote.port}`
+
+          let ws = map.get(key)
+
+          if (ws) {
+            ws.send(message, {binary: true})
+          } else {
+            map.set(key, ws = await this.openTarget())
+
+            ws.on('close', () => map.delete(key))
+              .on('message', (data: Buffer) => this.socket!.send(data, remote.port, remote.address))
+              .on('open', () => ws!.send(message, {binary: true}))
+          }
+        })
+
+    return new Promise<number>((resolve) => {
+      this.socket!.bind(port, this.options.host, () => resolve(port!))
     })
   }
 
-  private async tunnel(client: Socket) {
-    client.on('error', (error: Error) => console.error(error))
-
+  private async tunnel(client: net.Socket) {
     const ws = await this.openTarget()
 
-    const ping = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) ws.ping()  // Ping frame to keep the connection alive
-    }, this.options.pingInterval)
+    client.on('error', (error: Error) => console.error(error))
+          .on('end', () => ws.close())
+          .pause()
 
-    ws.on('error', (error: Error) => console.error(error))
-
-    ws.on('close', () => {
-      clearInterval(ping)
-      client.end()
-    })
-
-    client.on('end', () => ws.close())
-
-    client.pause()
-
-    ws.on('open', () => {
-      ws.on('message', (data: Buffer) => client.write(data))
-
-      client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
-
-      client.resume()
-    })
+    ws.on('close', () => client.end())
+      .on('message', (data: Buffer) => client.write(data))
+      .on('open', () => {
+        client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
+        client.resume()
+      })
   }
 
   private async openTarget(): Promise<WebSocket> {
@@ -133,7 +161,16 @@ export class WarpProxy {
       request
     ) : request
 
-    return new WebSocket(this.url, signed)
+    const ws = new WebSocket(this.url, signed)
+
+    const ping = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.ping()  // Ping frame to keep the connection alive
+    }, this.options.pingInterval)
+
+    ws.on('error', (error: Error) => console.error(error))
+      .on('close', () => clearInterval(ping))
+
+    return ws
   }
 
   private parseURL(target: string): URL {
