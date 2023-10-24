@@ -161,7 +161,7 @@ export class WarpProxy {
         'user-agent': USER_AGENT,
         ...this.options.headers || {}
       },
-      perMessageDeflate: false,
+      perMessageDeflate: true,
       timeout: CONNECT_TIMEOUT
     }
 
