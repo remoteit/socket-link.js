@@ -96,7 +96,7 @@ export class WarpProxy {
 
     const map = new Map<string, WebSocket>()
 
-    this.socket = dgram.createSocket('udp4')
+    this.socket = dgram.createSocket({type: 'udp4'})
 
     this.socket
         .on('error', (error: Error) => console.error(error))
