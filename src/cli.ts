@@ -11,7 +11,7 @@ import {DEFAULT_CREDENTIALS, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGR
     .name(PROGRAM_NAME)
     .description(PROGRAM_DESCRIPTION)
     .version(PROGRAM_VERSION, '-v, --version', `return the current version: "${PROGRAM_VERSION}"`)
-    .helpOption('-?, --help', 'return this help text')
+    .helpOption('-h, --help', 'return this help text')
     .addOption(new Option('-d, --debug', 'enable debug output'))
     .addOption(new Option('-b, --bind <address>', 'address to bind to').default(LOCALHOST))
     .addOption(new Option('-p, --port <port>', 'TCP port number').default(null, 'scan available').argParser(parseInt))
