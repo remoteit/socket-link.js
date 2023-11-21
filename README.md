@@ -24,18 +24,20 @@ npm i @remote.it/warp
 Setting up a **WARP** proxy is straightforward:
 
 ```typescript
-import {WarpProxy} from '@remote.it/warp';
+import {WarpProxy} from '@remote.it/warp'
+
+const warp = new WarpClient()
 
 // Specify the target service and other optional parameters
-const proxy = new WarpProxy('MNETSJSW');
+const proxy = warp.open('MNETSJSW')
 
-// Activate the proxy and retrieve the localhost port
-const port = await proxy.open();
+// Retrieve the proxy address
+const address = proxy.address
 
-// Use the localhost port in your application
+// Use the address in your application
 
 // Close the proxy when done
-await proxy.close();
+await proxy.close()
 ```
 
 ## Service Setup :dart:
@@ -58,21 +60,20 @@ configure your target service:
 For more control or specific service integration, **warp** offers advanced configuration options:
 
 ```typescript
-import {WarpProxy} from '@remote.it/warp'
 
-const proxy = new WarpProxy(
-  'MNETSJSW',                                           // Service Key, required
+
+const warp = new WarpClient({
+  router: 'connect.remote.it',        // WARP router, defaults to 'connect.remote.it'
+  credentials: 'path/to/credentials', // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
+  profile: 'MyProfile'                // Credential profile name to use, defaults to 'DEFAULT'
+})
+
+const proxy = warp.open(
+  'MNETSJSW',           // Service Key, required
   {
-    router: 'connect.remote.it',                        // WARP router, defaults to 'connect.remote.it'
-    keyId: 'J6RBX6GAXLSAIQX6GH3I',                      // Authentication key ID, defaults to process.env.R3_ACCESS_KEY_ID
-    secret: '2yw6NJA7q6jXdJvDbKBO4j9wi08o/ckR1X8CItUG', // Authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
-    credentials: 'path/to/credentials',                 // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
-    profile: 'MyProfile',                               // Credential profile name to use, defaults to 'DEFAULT'
-    host: '127.0.0.1',                                  // Host to bind to, defaults to '127.0.0.1'
-    port: 2222,                                         // Proxy port, defaults to first available port in the range below
-    minPort: 30000,                                     // Lowest port for available port search, defaults to 30000
-    maxPort: 39999,                                     // Highest port for available port search, defaults to 39999
-    pingInterval: 60000                                 // WebSocket ping interval, defaults to 60000 ms
+    bind: '127.0.0.1',  // Address to bind to, defaults to '127.0.0.1'
+    port: 2222,         // Proxy port, defaults to available port
+    pingInterval: 60000 // WebSocket ping interval, defaults to 60000 ms
   }
 )
 

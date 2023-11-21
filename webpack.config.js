@@ -5,7 +5,7 @@ module.exports = {
   target: 'node',
   mode: 'production',
   entry: {
-    warp: './src/warp.ts',
+    warp: './src/client.ts',
     cli: './src/cli.ts'
   },
   module: {

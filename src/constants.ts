@@ -15,8 +15,6 @@ export const DEBUG_ROUTER: string = 'dev-connect.remote.it'
 export const DEFAULT_CREDENTIALS: string = resolve(homedir(), '.remoteit/credentials')
 export const DEFAULT_PROFILE: string = 'DEFAULT'
 
-export const TARGET_REGEXP: RegExp = /^(?:(?<code>[\w-:]+)|([^:]+:\/\/)?(?<host>.+))$/
-
 export const SIGNATURE_ALGORITHM: string = 'hmac-sha256'
 export const SIGNED_HEADERS: string[] = ['@method', '@authority', '@target-uri', 'date']
 
@@ -27,4 +25,4 @@ export const MAX_SCAN_PORT: number = 39999
 
 export const CONNECT_TIMEOUT: number = 20000 // 20 seconds
 
-export const DEFAULT_PING_INTERVAL: number = 60000 // 1 minute
+export const PING_INTERVAL: number = 60000 // 1 minute
