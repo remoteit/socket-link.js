@@ -12,6 +12,8 @@ export const USER_AGENT: string = 'remoteit-warp/1.0'
 export const DEFAULT_ROUTER: string = 'connect.remote.it'
 export const DEBUG_ROUTER: string = 'dev-connect.remote.it'
 
+export const GRAPHQL_URL: string = 'https://api.remote.it/graphql/v1'
+
 export const DEFAULT_CREDENTIALS: string = resolve(homedir(), '.remoteit/credentials')
 export const DEFAULT_PROFILE: string = 'DEFAULT'
 
