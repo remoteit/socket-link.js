@@ -4,10 +4,10 @@ import {resolve} from 'path'
 import {version} from '../package.json'
 
 export const PROGRAM_VERSION: string = version
-export const PROGRAM_NAME: string = 'warp'
-export const PROGRAM_DESCRIPTION: string = 'Remote.It WARP CLI'
+export const PROGRAM_NAME: string = 'socket-link'
+export const PROGRAM_DESCRIPTION: string = 'Remote.It socket-link CLI'
 
-export const USER_AGENT: string = 'remoteit-warp/1.0'
+export const USER_AGENT: string = 'remoteit-socket-link/1.0'
 
 export const DEFAULT_ROUTER: string = 'connect.remote.it'
 export const DEBUG_ROUTER: string = 'dev-connect.remote.it'

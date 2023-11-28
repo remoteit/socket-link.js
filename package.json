@@ -1,15 +1,15 @@
 {
-  "name": "@remote.it/warp",
+  "name": "@remote.it/socket-link.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/remoteit/warp-js.git"
+    "url": "git+https://github.com/remoteit/socket-link.js.git"
   },
   "version": "1.0.24",
-  "description": "Remote.It WARP SDK/CLI",
-  "main": "dist/warp.js",
-  "types": "dist/warp.d.ts",
+  "description": "Remote.It socket-link SDK/CLI",
+  "main": "dist/socket-link.js",
+  "types": "dist/socket-link.d.ts",
   "bin": {
-    "warp": "dist/cli.js"
+    "socket-link": "dist/cli.js"
   },
   "scripts": {
     "build": "webpack"
@@ -25,7 +25,7 @@
     "secure",
     "tunnel",
     "typescript",
-    "WARP",
+    "socket-link",
     "websocket"
   ],
   "author": "Benoit",
@@ -33,7 +33,7 @@
   "dependencies": {
     "bufferutil": "^4.0.8",
     "commander": "^11.1.0",
-    "http-message-signatures": "^1.0.0",
+    "http-message-signatures": "^1.0.1",
     "ini": "^4.1.1",
     "string-template": "^1.0.0",
     "utf-8-validate": "^6.0.3",

@@ -2,7 +2,7 @@ import * as dgram from 'dgram'
 import * as net from 'net'
 import {AddressInfo} from 'net'
 import WebSocket from 'ws'
-import {WarpClient} from './client'
+import {SLClient} from './client'
 import {CONNECT_TIMEOUT, LOCALHOST, MAX_SCAN_PORT, MIN_SCAN_PORT, PING_INTERVAL} from './constants'
 import {getAvailableTCPPort, getAvailableUDPPort} from './utils'
 
@@ -19,14 +19,14 @@ const DEFAULT_OPTIONS: Partial<ProxyOptions> = {
   ping: PING_INTERVAL
 }
 
-export class WarpProxy {
-  private readonly client: WarpClient
+export class SLProxy {
+  private readonly client: SLClient
   private readonly options: ProxyOptions
   private readonly url: URL
   private server?: net.Server
   private socket?: dgram.Socket
 
-  constructor(client: WarpClient, target: string, options: Partial<ProxyOptions> = {}) {
+  constructor(client: SLClient, target: string, options: Partial<ProxyOptions> = {}) {
     this.client = client
     this.options = {...DEFAULT_OPTIONS, ...options} as ProxyOptions
     this.url = this.parseURL(target)
@@ -90,7 +90,7 @@ export class WarpProxy {
             ws.on('close', () => map.delete(key))
               .on('message', (data: Buffer) => this.socket!.send(data, remote.port, remote.address))
               .on('open', () => {
-                if (this.client.debug) console.error('WARP: connected UDP')
+                if (this.client.debug) console.error('socket-link: connected UDP')
 
                 ws!.send(message, {binary: true})
               })
@@ -112,7 +112,7 @@ export class WarpProxy {
     ws.on('close', () => client.end())
       .on('message', (data: Buffer) => client.write(data))
       .on('open', () => {
-        if (this.client.debug) console.error('WARP: connected TCP')
+        if (this.client.debug) console.error('socket-link: connected TCP')
 
         client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
         client.resume()
@@ -120,7 +120,7 @@ export class WarpProxy {
   }
 
   private async openTarget(): Promise<WebSocket> {
-    if (this.client.debug) console.error('WARP: opening %s', this.url)
+    if (this.client.debug) console.error('socket-link: opening %s', this.url)
 
     const request = await this.client.sign({
       method: 'GET',
@@ -143,7 +143,7 @@ export class WarpProxy {
   }
 
   private parseURL(target: string): URL {
-    if (!target) throw new Error(`Remote.It WARP target required`)
+    if (!target) throw new Error(`Remote.It socket-link target required`)
 
     const subdomain = target.replace(/[^0-9a-z]+/ig, '').toLowerCase()
 

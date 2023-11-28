@@ -1,4 +1,4 @@
-import {WarpClient} from './client'
+import {SLClient} from './client'
 import {LOCALHOST} from './constants'
 
 export interface ServiceOptions {
@@ -11,11 +11,11 @@ const DEFAULT_OPTIONS: Partial<ServiceOptions> = {
   host: LOCALHOST
 }
 
-export class WarpService {
-  private readonly client: WarpClient
+export class SLService {
+  private readonly client: SLClient
   private readonly options: ServiceOptions
 
-  constructor(client: WarpClient, options: Partial<ServiceOptions> = {}) {
+  constructor(client: SLClient, options: Partial<ServiceOptions> = {}) {
     this.client = client
     this.options = {...DEFAULT_OPTIONS, ...options} as ServiceOptions
   }

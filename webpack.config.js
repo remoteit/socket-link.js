@@ -5,7 +5,7 @@ module.exports = {
   target: 'node',
   mode: 'production',
   entry: {
-    warp: './src/client.ts',
+    'socket-link': './src/client.ts',
     cli: './src/cli.ts'
   },
   module: {

@@ -1,13 +1,13 @@
-# warp :rocket:
+# socket-link :rocket:
 
-**warp** is a powerful SDK and CLI for integrating with the **Remote.It** **WARP** infrastructure. Perfect
-for setting up a secure one-time connection or developing a complex network application, **warp** simplifies networking.
+**socket-link** is a powerful SDK and CLI for integrating with the **Remote.It** **socket-link** infrastructure. Perfect
+for setting up a secure one-time connection or developing a complex network application, **socket-link** simplifies networking.
 
-[![npm version](https://badge.fury.io/js/%40remote.it%2Fwarp.svg)](https://www.npmjs.com/package/@remote.it/warp)
+[![npm version](https://badge.fury.io/js/%40remote.it%2Fsocket-link.svg)](https://www.npmjs.com/package/@remote.it/socket-link)
 
 ## Features :sparkles:
 
-- **Seamless Integration**: Securely connect to the **Remote.It** **WARP** infrastructure.
+- **Seamless Integration**: Securely connect to the **Remote.It** **socket-link** infrastructure.
 - **Effortless Management**: Intuitive API for setting up and tearing down connections.
 - **TypeScript-Powered**: Modern language for the best development experience.
 - **Signature Authentication**: Secure authentication using HTTP signatures.
@@ -16,20 +16,20 @@ for setting up a secure one-time connection or developing a complex network appl
 ## Installation :package:
 
 ```shell
-npm i @remote.it/warp
+npm i @remote.it/socket-link
 ```
 
 ## Basic Usage :computer:
 
-Setting up a **WARP** proxy is straightforward:
+Setting up a **socket-link** proxy is straightforward:
 
 ```typescript
-import {WarpProxy} from '@remote.it/warp'
+import {SLProxy} from '@remote.it/socket-link'
 
-const warp = new WarpClient()
+const client = new SLClient()
 
 // Specify the target service and other optional parameters
-const proxy = warp.open('MNETSJSW')
+const proxy = client.open('MNETSJSW')
 
 // Retrieve the proxy address
 const address = proxy.address
@@ -57,18 +57,18 @@ configure your target service:
 
 ## Advanced Usage :wrench:
 
-For more control or specific service integration, **warp** offers advanced configuration options:
+For more control or specific service integration, **socket-link** offers advanced configuration options:
 
 ```typescript
 
 
-const warp = new WarpClient({
-  router: 'connect.remote.it', // WARP router, defaults to 'connect.remote.it'
+const client = new SLClient({
+  router: 'connect.remote.it', // socket-link router, defaults to 'connect.remote.it'
   config: 'path/to/config',    // Path to Remote.It config files, defaults to ~/.remoteit
   profile: 'MyProfile'         // Credential profile name to use, defaults to 'DEFAULT'
 })
 
-const proxy = warp.open(
+const proxy = client.open(
   'MNETSJSW',           // Service Key, required
   {
     bind: '127.0.0.1',  // Address to bind to, defaults to '127.0.0.1'
@@ -121,7 +121,7 @@ Credentials can be provided in three ways:
 If no credentials are specified, and the default **Remote.It** credentials file is not found, the connection will remain
 unauthenticated.
 
-The credential file is designed to store access keys for the **Remote.It** **WARP** service. This structure allows you
+The credential file is designed to store access keys for the **Remote.It** **socket-link** service. This structure allows you
 to define multiple profiles, each with its own set of credentials. You can create and manage your keys in
 your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
@@ -163,12 +163,12 @@ R3_SECRET_ACCESS_KEY=2yw6NJA7q6jXdJvDbKBO4j9wi08o/ckR1X8CItUG
 
 ## API Documentation :book:
 
-Dive deep into the features and configurations in our [official documentation](https://github.com/remoteit/warp-js).
+Dive deep into the features and configurations in our [official documentation](https://github.com/remoteit/socket-link.js).
 
 ## Support and Contribution :raising_hand:
 
 Run into problems? or have suggestions? Your feedback is invaluable. Open
-an [issue](https://github.com/remoteit/warp-js/issues) or submit a pull request.
+an [issue](https://github.com/remoteit/socket-link.js/issues) or submit a pull request.
 
 ## License :page_facing_up:
 

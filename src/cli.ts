@@ -1,7 +1,7 @@
 import {spawn} from 'child_process'
 import {Command, Option} from 'commander'
 import format from 'string-template'
-import {WarpClient} from './client'
+import {SLClient} from './client'
 import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VERSION} from './constants'
 
 (async () => {
@@ -14,7 +14,7 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .addOption(new Option('-d, --debug', 'enable debug output'))
          .addOption(new Option('-c, --config <directory>', 'path to the Remote.It configuration files').default(DEFAULT_CONFIG))
          .addOption(new Option('-p, --profile <name>', 'credential profile name'))
-         .addOption(new Option('-r, --router <host>', 'Remote.It WARP router hostname').hideHelp())
+         .addOption(new Option('-r, --router <host>', 'Remote.It socket-link router hostname').hideHelp())
          .enablePositionalOptions()
 
   program.command('api')
@@ -22,15 +22,15 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .argument('<query>', 'query to execute')
          .addOption(new Option('-v, --variables <json>', 'query variables').argParser(value => JSON.parse(value)))
          .action(async (query, options) => {
-           const warp = new WarpClient(program.opts())
+           const client = new SLClient(program.opts())
 
-           const result = await warp.api(query, options.variables)
+           const result = await client.api(query, options.variables)
 
            console.log(JSON.stringify(result, null, 2))
          })
 
   program.command('connect')
-         .description('Connect to a WARP service')
+         .description('Connect to a socket-link service')
          .argument('<target>', 'the target service key')
          .argument('[command...]', 'command line to execute, {address} and {port} will be replaced with the proxy address and port')
          .addOption(new Option('-b, --bind <address>', 'address to bind to').default(LOCALHOST))
@@ -39,13 +39,13 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .action(async (target, template, options, command) => {
            if (!template?.length) return command.help()
 
-           const warp = new WarpClient(program.opts())
+           const client = new SLClient(program.opts())
 
-           const proxy = await warp.connect(target, options)
+           const proxy = await client.connect(target, options)
 
            const execute = template.map((arg: string) => format(arg, proxy.address))
 
-           if (warp.debug) console.error('WARP: %s', execute.join(' '))
+           if (client.debug) console.error('socket-link: %s', execute.join(' '))
 
            await new Promise((resolve, reject) => {
              const process = spawn(execute.shift(), execute, {stdio: 'inherit'})
@@ -58,14 +58,14 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          })
 
   program.command('register')
-         .description('Register a WARP service')
+         .description('Register a socket-link service')
          .addOption(new Option('-h, --host <host>', 'host to connect to').default(LOCALHOST))
          .addOption(new Option('-p, --port <port>', 'port number').argParser(parseInt))
          .addOption(new Option('-u, --udp', 'UDP'))
          .action(async (target, template, options, command) => {
-           const warp = new WarpClient(program.opts())
+           const client = new SLClient(program.opts())
 
-           await warp.register(options)
+           await client.register(options)
          })
 
   try {

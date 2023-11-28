@@ -15,11 +15,11 @@ import {
   SIGNED_HEADERS,
   USER_AGENT
 } from './constants'
-import {ProxyOptions, WarpProxy} from './proxy'
-import {ServiceOptions, WarpService} from './service'
+import {ProxyOptions, SLProxy} from './proxy'
+import {ServiceOptions, SLService} from './service'
 
 export interface ClientOptions {
-  router: string  // Remote.It WARP router hostname
+  router: string  // Remote.It socket-link router hostname
   keyId: string   // authentication key ID, defaults to process.env.R3_ACCESS_KEY_ID
   secret: string  // authentication secret, defaults to process.env.R3_SECRET_ACCESS_KEY
   config: string  // path to the Remote.It configuration files
@@ -34,7 +34,7 @@ const DEFAULT_OPTIONS: Partial<ClientOptions> = {
   profile: DEFAULT_PROFILE
 }
 
-export class WarpClient {
+export class SLClient {
   private readonly options: ClientOptions
 
   constructor(options: Partial<ClientOptions> = {}) {
@@ -72,8 +72,8 @@ export class WarpClient {
     return data
   }
 
-  async connect(target: string, options: Partial<ProxyOptions> = {}): Promise<WarpProxy> {
-    const proxy = new WarpProxy(this, target, options)
+  async connect(target: string, options: Partial<ProxyOptions> = {}): Promise<SLProxy> {
+    const proxy = new SLProxy(this, target, options)
 
     return proxy.open()
   }
@@ -132,8 +132,8 @@ export class WarpClient {
     return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
   }
 
-  async register(options: Partial<ServiceOptions> = {}): Promise<WarpService> {
-    const service = new WarpService(this, options)
+  async register(options: Partial<ServiceOptions> = {}): Promise<SLService> {
+    const service = new SLService(this, options)
 
     return service.register()
   }
