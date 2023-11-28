@@ -1,13 +1,16 @@
 {
-  "name": "@remote.it/socket-link.js",
+  "name": "@remote.it/socket-link",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/remoteit/socket-link.js.git"
   },
-  "version": "1.0.25",
+  "version": "1.0.0",
   "description": "Remote.It socket-link SDK/CLI",
   "main": "dist/socket-link.js",
   "types": "dist/socket-link.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "socket-link": "dist/cli.js"
   },
