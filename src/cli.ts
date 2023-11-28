@@ -13,8 +13,8 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .helpOption('-h, --help', 'return this help text')
          .addOption(new Option('-d, --debug', 'enable debug output'))
          .addOption(new Option('-c, --config <directory>', 'path to the Remote.It configuration files').default(DEFAULT_CONFIG))
-         .addOption(new Option('-p, --profile <profile>', 'credential profile name'))
-         .addOption(new Option('-r, --router <router>', 'Remote.It WARP router hostname').hideHelp())
+         .addOption(new Option('-p, --profile <name>', 'credential profile name'))
+         .addOption(new Option('-r, --router <host>', 'Remote.It WARP router hostname').hideHelp())
          .enablePositionalOptions()
 
   program.command('api')
