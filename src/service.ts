@@ -3,8 +3,8 @@ import {LOCALHOST} from './constants'
 
 export interface ServiceOptions {
   host: string  // service address, defaults to localhost
-  port?: number // TCP port
-  udp?: number  // UDP port
+  port: number  // port number
+  udp?: boolean // UDP service
 }
 
 const DEFAULT_OPTIONS: Partial<ServiceOptions> = {

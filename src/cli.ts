@@ -34,8 +34,8 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .argument('<target>', 'the target service key')
          .argument('[command...]', 'command line to execute, {address} and {port} will be replaced with the proxy address and port')
          .addOption(new Option('-b, --bind <address>', 'address to bind to').default(LOCALHOST))
-         .addOption(new Option('-p, --port <port>', 'TCP port number').default(null, 'scan available').argParser(parseInt))
-         .addOption(new Option('-u, --udp <port>', 'UDP port number').argParser(parseInt).conflicts('port'))
+         .addOption(new Option('-p, --port <port>', 'port number').default(null, 'scan available').argParser(parseInt))
+         .addOption(new Option('-u, --udp', 'UDP'))
          .action(async (target, template, options, command) => {
            if (!template?.length) return command.help()
 
@@ -60,8 +60,8 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
   program.command('register')
          .description('Register a WARP service')
          .addOption(new Option('-h, --host <host>', 'host to connect to').default(LOCALHOST))
-         .addOption(new Option('-p, --port <port>', 'TCP port number').argParser(parseInt))
-         .addOption(new Option('-u, --udp <port>', 'UDP port number').argParser(parseInt).conflicts('port'))
+         .addOption(new Option('-p, --port <port>', 'port number').argParser(parseInt))
+         .addOption(new Option('-u, --udp', 'UDP'))
          .action(async (target, template, options, command) => {
            const warp = new WarpClient(program.opts())
 
