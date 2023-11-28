@@ -16,6 +16,7 @@ import {
   USER_AGENT
 } from './constants'
 import {ProxyOptions, WarpProxy} from './proxy'
+import {ServiceOptions, WarpService} from './service'
 
 export interface ClientOptions {
   router: string  // Remote.It WARP router hostname
@@ -129,5 +130,11 @@ export class WarpClient {
     }
 
     return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
+  }
+
+  async register(options: Partial<ServiceOptions> = {}): Promise<WarpService> {
+    const service = new WarpService(this, options)
+
+    return service.register()
   }
 }

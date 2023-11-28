@@ -64,6 +64,8 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .addOption(new Option('-u, --udp <port>', 'UDP port number').argParser(parseInt).conflicts('port'))
          .action(async (target, template, options, command) => {
            const warp = new WarpClient(program.opts())
+
+           await warp.register(options)
          })
 
   try {
