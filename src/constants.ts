@@ -14,8 +14,10 @@ export const DEBUG_ROUTER: string = 'dev-connect.remote.it'
 
 export const GRAPHQL_URL: string = 'https://api.remote.it/graphql/v1'
 
-export const DEFAULT_CREDENTIALS: string = resolve(homedir(), '.remoteit/credentials')
+export const DEFAULT_CONFIG: string = resolve(homedir(), '.remoteit')
 export const DEFAULT_PROFILE: string = 'DEFAULT'
+
+export const CREDENTIALS_FILE: string = 'credentials'
 
 export const SIGNATURE_ALGORITHM: string = 'hmac-sha256'
 export const SIGNED_HEADERS: string[] = ['@method', '@authority', '@target-uri', 'date']

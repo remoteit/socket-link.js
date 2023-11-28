@@ -63,9 +63,9 @@ For more control or specific service integration, **warp** offers advanced confi
 
 
 const warp = new WarpClient({
-  router: 'connect.remote.it',        // WARP router, defaults to 'connect.remote.it'
-  credentials: 'path/to/credentials', // Path to Remote.It credentials file, defaults to ~/.remoteit/credentials
-  profile: 'MyProfile'                // Credential profile name to use, defaults to 'DEFAULT'
+  router: 'connect.remote.it', // WARP router, defaults to 'connect.remote.it'
+  config: 'path/to/config',    // Path to Remote.It config files, defaults to ~/.remoteit
+  profile: 'MyProfile'         // Credential profile name to use, defaults to 'DEFAULT'
 })
 
 const proxy = warp.open(
@@ -116,14 +116,13 @@ Credentials can be provided in three ways:
 2. **Configuration Options**: Alternatively, you can provide your credentials as configuration options: `keyId`
    and `secret`.
 
-3. **Credentials File**: For enhanced security, it is recommended to use a separate credentials file.
+3. **Credentials File**: For enhanced security, it is recommended to use the credentials file.
 
 If no credentials are specified, and the default **Remote.It** credentials file is not found, the connection will remain
 unauthenticated.
 
 The credential file is designed to store access keys for the **Remote.It** **WARP** service. This structure allows you
-to define
-multiple profiles, each with its own set of credentials. You can create and manage your keys in
+to define multiple profiles, each with its own set of credentials. You can create and manage your keys in
 your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
 The file is formatted in the INI style, where each section corresponds to a unique profile.
