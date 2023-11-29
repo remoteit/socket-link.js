@@ -1,4 +1,4 @@
-import {SLClient} from './client'
+import {SocketLink} from '.'
 import {LOCALHOST} from './constants'
 
 export interface ServiceOptions {
@@ -11,11 +11,11 @@ const DEFAULT_OPTIONS: Partial<ServiceOptions> = {
   host: LOCALHOST
 }
 
-export class SLService {
-  private readonly client: SLClient
+export class Service {
+  private readonly client: SocketLink
   private readonly options: ServiceOptions
 
-  constructor(client: SLClient, options: Partial<ServiceOptions> = {}) {
+  constructor(client: SocketLink, options: Partial<ServiceOptions> = {}) {
     this.client = client
     this.options = {...DEFAULT_OPTIONS, ...options} as ServiceOptions
   }

@@ -25,12 +25,12 @@ npm i @remote.it/socket-link
 Setting up a **socket-link** proxy is straightforward:
 
 ```typescript
-import {SLProxy} from '@remote.it/socket-link'
+import {SocketLink} from '@remote.it/socket-link'
 
-const client = new SLClient()
+const socketLink = new SocketLink()
 
 // Specify the target service and other optional parameters
-const proxy = client.connect('MNETSJSW')
+const proxy = socketLink.connect('MNETSJSW')
 
 // Retrieve the proxy address
 const address = proxy.address
@@ -61,14 +61,12 @@ configure your target service:
 For more control or specific service integration, **socket-link** offers advanced configuration options:
 
 ```typescript
-
-
-const client = new SLClient({
+const socketLink = new SocketLink({
   config: 'path/to/config', // Path to Remote.It config files, defaults to ~/.remoteit
   profile: 'MyProfile'      // Credential profile name to use, defaults to 'DEFAULT'
 })
 
-const proxy = client.connect(
+const proxy = socketLink.connect(
   'MNETSJSW',           // Service Key, required
   {
     bind: '127.0.0.1',  // Address to bind to, defaults to '127.0.0.1'

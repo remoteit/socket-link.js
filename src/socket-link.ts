@@ -4,6 +4,7 @@ import {signMessage} from 'http-message-signatures/lib/httpbis'
 import {SigningKey} from 'http-message-signatures/lib/types'
 import {parse} from 'ini'
 import {resolve} from 'path'
+import {Proxy, ProxyOptions, Service, ServiceOptions} from '.'
 import {
   CREDENTIALS_FILE,
   DEBUG_ROUTER,
@@ -15,8 +16,6 @@ import {
   SIGNED_HEADERS,
   USER_AGENT
 } from './constants'
-import {ProxyOptions, SLProxy} from './proxy'
-import {ServiceOptions, SLService} from './service'
 
 export interface ClientOptions {
   router: string  // Remote.It socket-link router hostname
@@ -34,7 +33,7 @@ const DEFAULT_OPTIONS: Partial<ClientOptions> = {
   profile: DEFAULT_PROFILE
 }
 
-export class SLClient {
+export class SocketLink {
   private readonly options: ClientOptions
 
   constructor(options: Partial<ClientOptions> = {}) {
@@ -72,8 +71,8 @@ export class SLClient {
     return data
   }
 
-  async connect(target: string, options: Partial<ProxyOptions> = {}): Promise<SLProxy> {
-    const proxy = new SLProxy(this, target, options)
+  async connect(target: string, options: Partial<ProxyOptions> = {}): Promise<Proxy> {
+    const proxy = new Proxy(this, target, options)
 
     return proxy.open()
   }
@@ -132,8 +131,8 @@ export class SLClient {
     return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
   }
 
-  async register(options: Partial<ServiceOptions> = {}): Promise<SLService> {
-    const service = new SLService(this, options)
+  async register(options: Partial<ServiceOptions> = {}): Promise<Service> {
+    const service = new Service(this, options)
 
     return service.register()
   }

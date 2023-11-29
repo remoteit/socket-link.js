@@ -1,7 +1,7 @@
 import {spawn} from 'child_process'
 import {Command, Option} from 'commander'
 import format from 'string-template'
-import {SLClient} from './client'
+import {SocketLink} from '.'
 import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VERSION} from './constants'
 
 (async () => {
@@ -22,9 +22,9 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .argument('<query>', 'query to execute')
          .addOption(new Option('-v, --variables <json>', 'query variables').argParser(value => JSON.parse(value)))
          .action(async (query, options) => {
-           const client = new SLClient(program.opts())
+           const socketLink = new SocketLink(program.opts())
 
-           const result = await client.api(query, options.variables)
+           const result = await socketLink.api(query, options.variables)
 
            console.log(JSON.stringify(result, null, 2))
          })
@@ -39,13 +39,13 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .action(async (target, template, options, command) => {
            if (!template?.length) return command.help()
 
-           const client = new SLClient(program.opts())
+           const socketLink = new SocketLink(program.opts())
 
-           const proxy = await client.connect(target, options)
+           const proxy = await socketLink.connect(target, options)
 
            const execute = template.map((arg: string) => format(arg, proxy.address))
 
-           if (client.debug) console.error('socket-link: %s', execute.join(' '))
+           if (socketLink.debug) console.error('socket-link: %s', execute.join(' '))
 
            await new Promise((resolve, reject) => {
              const process = spawn(execute.shift(), execute, {stdio: 'inherit'})
@@ -63,9 +63,9 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
          .addOption(new Option('-p, --port <port>', 'port number').argParser(parseInt))
          .addOption(new Option('-u, --udp', 'UDP'))
          .action(async (target, template, options, command) => {
-           const client = new SLClient(program.opts())
+           const socketLink = new SocketLink(program.opts())
 
-           await client.register(options)
+           await socketLink.register(options)
          })
 
   try {

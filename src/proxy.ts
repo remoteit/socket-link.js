@@ -2,7 +2,7 @@ import * as dgram from 'dgram'
 import * as net from 'net'
 import {AddressInfo} from 'net'
 import WebSocket from 'ws'
-import {SLClient} from './client'
+import {SocketLink} from '.'
 import {CONNECT_TIMEOUT, LOCALHOST, MAX_SCAN_PORT, MIN_SCAN_PORT, PING_INTERVAL} from './constants'
 import {getAvailableTCPPort, getAvailableUDPPort} from './utils'
 
@@ -19,14 +19,14 @@ const DEFAULT_OPTIONS: Partial<ProxyOptions> = {
   ping: PING_INTERVAL
 }
 
-export class SLProxy {
-  private readonly client: SLClient
+export class Proxy {
+  private readonly client: SocketLink
   private readonly options: ProxyOptions
   private readonly url: URL
   private server?: net.Server
   private socket?: dgram.Socket
 
-  constructor(client: SLClient, target: string, options: Partial<ProxyOptions> = {}) {
+  constructor(client: SocketLink, target: string, options: Partial<ProxyOptions> = {}) {
     this.client = client
     this.options = {...DEFAULT_OPTIONS, ...options} as ProxyOptions
     this.url = this.parseURL(target)

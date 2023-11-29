@@ -5,7 +5,7 @@ module.exports = {
   target: 'node',
   mode: 'production',
   entry: {
-    'socket-link': './src/client.ts',
+    index: './src/index.ts',
     cli: './src/cli.ts'
   },
   module: {
