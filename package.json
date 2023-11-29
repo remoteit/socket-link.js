@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git+https://github.com/remoteit/socket-link.js.git"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Remote.It socket-link SDK/CLI",
   "main": "dist/socket-link.js",
   "types": "dist/socket-link.d.ts",
