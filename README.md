@@ -1,4 +1,4 @@
-# socket-link :electric-plug: :link:
+# socket-link :link:
 
 **socket-link** is a powerful SDK and CLI for integrating with the **Remote.It** **socket-link** infrastructure. Perfect
 for setting up a secure one-time connection or developing a complex network application, **socket-link** simplifies
