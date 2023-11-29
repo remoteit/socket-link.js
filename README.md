@@ -1,7 +1,8 @@
-# socket-link :rocket:
+# socket-link :electric-plug: :link:
 
 **socket-link** is a powerful SDK and CLI for integrating with the **Remote.It** **socket-link** infrastructure. Perfect
-for setting up a secure one-time connection or developing a complex network application, **socket-link** simplifies networking.
+for setting up a secure one-time connection or developing a complex network application, **socket-link** simplifies
+networking.
 
 [![npm version](https://badge.fury.io/js/%40remote.it%2Fsocket-link.svg)](https://www.npmjs.com/package/@remote.it/socket-link)
 
@@ -29,7 +30,7 @@ import {SLProxy} from '@remote.it/socket-link'
 const client = new SLClient()
 
 // Specify the target service and other optional parameters
-const proxy = client.open('MNETSJSW')
+const proxy = client.connect('MNETSJSW')
 
 // Retrieve the proxy address
 const address = proxy.address
@@ -63,17 +64,15 @@ For more control or specific service integration, **socket-link** offers advance
 
 
 const client = new SLClient({
-  router: 'connect.remote.it', // socket-link router, defaults to 'connect.remote.it'
-  config: 'path/to/config',    // Path to Remote.It config files, defaults to ~/.remoteit
-  profile: 'MyProfile'         // Credential profile name to use, defaults to 'DEFAULT'
+  config: 'path/to/config', // Path to Remote.It config files, defaults to ~/.remoteit
+  profile: 'MyProfile'      // Credential profile name to use, defaults to 'DEFAULT'
 })
 
-const proxy = client.open(
+const proxy = client.connect(
   'MNETSJSW',           // Service Key, required
   {
     bind: '127.0.0.1',  // Address to bind to, defaults to '127.0.0.1'
-    port: 2222,         // Proxy port, defaults to available port
-    pingInterval: 60000 // WebSocket ping interval, defaults to 60000 ms
+    port: 2222          // Proxy port, defaults to available port
   }
 )
 
@@ -121,7 +120,8 @@ Credentials can be provided in three ways:
 If no credentials are specified, and the default **Remote.It** credentials file is not found, the connection will remain
 unauthenticated.
 
-The credential file is designed to store access keys for the **Remote.It** **socket-link** service. This structure allows you
+The credential file is designed to store access keys for the **Remote.It** **socket-link** service. This structure
+allows you
 to define multiple profiles, each with its own set of credentials. You can create and manage your keys in
 your [Remote.It account AccessKeys page](https://link.remote.it/credentials).
 
@@ -163,7 +163,8 @@ R3_SECRET_ACCESS_KEY=2yw6NJA7q6jXdJvDbKBO4j9wi08o/ckR1X8CItUG
 
 ## API Documentation :book:
 
-Dive deep into the features and configurations in our [official documentation](https://github.com/remoteit/socket-link.js).
+Dive deep into the features and configurations in
+our [official documentation](https://github.com/remoteit/socket-link.js).
 
 ## Support and Contribution :raising_hand:
 
