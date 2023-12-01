@@ -88,7 +88,10 @@ export class Identity {
 
     console.error(`${node} registered`)
 
-    return plainToInstance(this, {node, key: privateKey.toString('base64')})
+    return plainToInstance(this, {
+      node,
+      key: privateKey.toString('base64')
+    })
   }
 
   async save(file: string): Promise<this> {
