@@ -2,9 +2,11 @@ import {instanceToPlain, plainToInstance, Transform, TransformationType, Transfo
 import crypto, {KeyObject} from 'crypto'
 import fs from 'fs/promises'
 import jwt from 'jsonwebtoken'
+import os from 'os'
 import path from 'path'
 import {IDENTITY_FILE, USER_AGENT} from './constants'
 import {SocketLink} from './socket-link'
+import {getPrimaryNetwork} from './utils'
 
 const KeyTransform = (params: TransformFnParams): any => {
   const {value} = params
@@ -21,13 +23,13 @@ const KeyTransform = (params: TransformFnParams): any => {
 }
 
 export class Identity {
-  readonly node!: string
+  readonly id!: string
 
   @Transform(KeyTransform)
   private readonly key!: KeyObject
 
   get token(): string {
-    return jwt.sign({host: this.node}, this.key, {algorithm: 'ES256'})
+    return jwt.sign({id: this.id}, this.key, {algorithm: 'ES256'})
   }
 
   static async initialize(client: SocketLink): Promise<Identity> {
@@ -63,7 +65,11 @@ export class Identity {
       }
     })
 
-    console.log(`registering node with ${client.router}...`)
+    const name = os.hostname().split('.')[0]
+    const network = getPrimaryNetwork()
+    const mac = network?.mac
+
+    console.log(`registering ${name} with ${client.router}...`)
 
     const request = {
       method: 'POST',
@@ -73,7 +79,9 @@ export class Identity {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-          publicKey: publicKey.toString('base64')
+          name,
+          mac,
+          key: publicKey.toString('base64')
         }
       )
     }
@@ -82,14 +90,12 @@ export class Identity {
 
     if (!response.ok) throw new Error(response.statusText)
 
-    const result = await response.json()
+    const {id} = await response.json()
 
-    const node = `${result.id}.${client.router}`
-
-    console.error(`${node} registered`)
+    console.error(`${id} registered`)
 
     return plainToInstance(this, {
-      node,
+      id,
       key: privateKey.toString('base64')
     })
   }
