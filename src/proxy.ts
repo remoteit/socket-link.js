@@ -48,7 +48,7 @@ export class Proxy {
   }
 
   private async tcp(): Promise<this> {
-    const port = this.options.port || await getAvailableTCPPort(MIN_SCAN_PORT, MAX_SCAN_PORT)
+    const port = this.options.port || await getAvailableTCPPort(MIN_SCAN_PORT, MAX_SCAN_PORT, this.options.bind)
 
     if (!port) throw new Error(`no available TCP port found`)
 
@@ -64,7 +64,7 @@ export class Proxy {
   }
 
   private async udp(): Promise<this> {
-    const port = this.options.port || await getAvailableUDPPort(MIN_SCAN_PORT, MAX_SCAN_PORT)
+    const port = this.options.port || await getAvailableUDPPort(MIN_SCAN_PORT, MAX_SCAN_PORT, this.options.bind)
 
     if (!port) throw new Error(`no available UDP port found`)
 
