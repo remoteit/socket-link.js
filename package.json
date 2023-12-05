@@ -16,6 +16,7 @@
   },
   "scripts": {
     "build": "npm-run-all build:*",
+    "build:npm": "npm ci",
     "build:webpack": "webpack",
     "build:types": "tsc -p tsconfig.declarations.json"
   },
