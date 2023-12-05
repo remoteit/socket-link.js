@@ -1,6 +1,6 @@
 import {createSocket} from 'dgram'
 import {createServer} from 'net'
-import os, {NetworkInterfaceInfo} from 'os'
+import os from 'os'
 
 export async function getAvailableTCPPort(min: number, max: number): Promise<number | null> {
   for (let port = min; port <= max; port++) {
@@ -40,7 +40,7 @@ export async function isUDPPortAvailable(port: number): Promise<boolean> {
   })
 }
 
-export function getPrimaryNetwork(): NetworkInterfaceInfo | null {
+export function getPrimaryNetwork(): os.NetworkInterfaceInfo | null {
   const interfaces = os.networkInterfaces()
 
   for (const [name, list] of Object.entries(interfaces)) {
