@@ -1,5 +1,5 @@
-import {homedir} from 'os'
-import {resolve} from 'path'
+import os from 'os'
+import path from 'path'
 // @ts-ignore
 import {version} from '../package.json'
 
@@ -14,7 +14,7 @@ export const DEBUG_ROUTER: string = 'dev-connect.remote.it'
 
 export const GRAPHQL_URL: string = 'https://api.remote.it/graphql/v1'
 
-export const DEFAULT_CONFIG: string = resolve(homedir(), '.remoteit')
+export const DEFAULT_CONFIG: string = path.resolve(os.homedir(), '.remoteit')
 export const DEFAULT_PROFILE: string = 'DEFAULT'
 
 export const CREDENTIALS_FILE: string = 'credentials'

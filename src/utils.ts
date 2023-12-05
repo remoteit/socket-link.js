@@ -1,5 +1,6 @@
 import {createSocket} from 'dgram'
 import {createServer} from 'net'
+import os from 'os'
 
 export async function getAvailableTCPPort(min: number, max: number): Promise<number | null> {
   for (let port = min; port <= max; port++) {
@@ -37,4 +38,16 @@ export async function isUDPPortAvailable(port: number): Promise<boolean> {
           .on('error', () => resolve(false))
           .bind(port)
   })
+}
+
+export function getPrimaryNetwork(): os.NetworkInterfaceInfo | null {
+  const interfaces = os.networkInterfaces()
+
+  for (const [name, list] of Object.entries(interfaces)) {
+    const info = list?.find((info) => info.family === 'IPv4' && !info.internal)
+
+    if (info) return info
+  }
+
+  return null
 }

@@ -1,9 +1,9 @@
-import {existsSync, readFileSync} from 'fs'
+import fs from 'fs/promises'
 import {createSigner} from 'http-message-signatures/lib/algorithm'
 import {signMessage} from 'http-message-signatures/lib/httpbis'
 import {SigningKey} from 'http-message-signatures/lib/types'
-import {parse} from 'ini'
-import {resolve} from 'path'
+import ini from 'ini'
+import path from 'path'
 import {Proxy, ProxyOptions, Service, ServiceOptions} from '.'
 import {
   CREDENTIALS_FILE,
@@ -50,6 +50,10 @@ export class SocketLink {
     return this.options.router
   }
 
+  resolve(name: string): string {
+    return path.resolve(this.options.config, name)
+  }
+
   async api(query: string, variables?: any): Promise<any> {
     const request = await this.sign({
       method: 'POST',
@@ -77,6 +81,12 @@ export class SocketLink {
     return proxy.open()
   }
 
+  async register(options: Partial<ServiceOptions> = {}): Promise<Service> {
+    const service = new Service(this, options)
+
+    return service.register()
+  }
+
   async sign(request: any): Promise<any> {
     if (request.headers?.authorization) return request // we have an authorization header, skip signing
 
@@ -98,12 +108,12 @@ export class SocketLink {
     let {keyId, secret} = this.options
 
     if (!keyId || !secret) {
-      const {config, profile} = this.options
+      const file = this.resolve(CREDENTIALS_FILE)
 
-      const credentials = resolve(config, CREDENTIALS_FILE)
-
-      if (!existsSync(credentials)) {
-        console.error(`${credentials} not found, unauthenticated access`)
+      try {
+        await fs.access(file, fs.constants.R_OK)
+      } catch (error) {
+        console.error(`${file} not found, unauthenticated access`)
 
         return undefined
       }
@@ -111,11 +121,12 @@ export class SocketLink {
       let hash = null
 
       try {
-        hash = parse(readFileSync(credentials, 'utf-8'))
+        hash = ini.parse(await fs.readFile(file, 'utf-8'))
       } catch (error: any) {
         throw new Error(`Remote.It credentials file error: ${error.message}`)
       }
 
+      const profile = this.options.profile
       const upper = profile?.toUpperCase()
       const fallback = !upper || upper === DEFAULT_PROFILE ? hash : undefined
       const section = Object.entries(hash).find(([key, _]) => key.toUpperCase() === upper)?.[1] || fallback
@@ -129,11 +140,5 @@ export class SocketLink {
     }
 
     return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
-  }
-
-  async register(options: Partial<ServiceOptions> = {}): Promise<Service> {
-    const service = new Service(this, options)
-
-    return service.register()
   }
 }

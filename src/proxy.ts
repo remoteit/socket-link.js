@@ -107,10 +107,11 @@ export class Proxy {
 
     client.on('error', (error: Error) => console.error(error))
           .on('end', () => ws.close())
+          .on('drain', () => ws.resume()) // resume the websocket when the socket buffer is empty
           .pause()
 
     ws.on('close', () => client.end())
-      .on('message', (data: Buffer) => client.write(data))
+      .on('message', (data: Buffer) => client.write(data) || ws.pause()) // pause the websocket if the socket buffer is full
       .on('open', () => {
         if (this.client.debug) console.error('socket-link: connected TCP')
 
