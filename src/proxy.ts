@@ -105,17 +105,23 @@ export class Proxy {
   private async tunnel(client: net.Socket) {
     const ws = await this.openTarget()
 
-    client.on('error', (error: Error) => console.error(error))
+    const terminate = (error?: Error) => {
+      if (!error) return
+      console.error(error.message)
+      ws.close()
+    }
+
+    client.on('error', (error: Error) => terminate)
           .on('end', () => ws.close())
-          .on('drain', () => ws.resume()) // resume the websocket when the socket buffer is empty
+          .on('drain', () => ws.resume())
+          .on('data', (data: Buffer) => ws.send(data, {binary: true}))
           .pause()
 
     ws.on('close', () => client.destroy())
-      .on('message', (data: Buffer) => client.write(data) || ws.pause()) // pause the websocket if the socket buffer is full
+      .on('message', (data: Buffer) => client.write(data, terminate) || ws.pause())
       .on('open', () => {
         if (this.client.debug) console.error('socket-link: connected TCP')
 
-        client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
         client.resume()
       })
   }
