@@ -4,7 +4,7 @@ import {AddressInfo} from 'net'
 import WebSocket from 'ws'
 import {SocketLink} from '.'
 import {CONNECT_TIMEOUT, LOCALHOST, MAX_SCAN_PORT, MIN_SCAN_PORT, PING_INTERVAL} from './constants'
-import {getAvailableTCPPort, getAvailableUDPPort} from './utils'
+import {getAvailableTCPPort, getAvailableUDPPort, signRequest} from './utils'
 
 export interface ProxyOptions {
   bind: string                                // address to bind to, defaults to localhost
@@ -48,7 +48,7 @@ export class Proxy {
   }
 
   private async tcp(): Promise<this> {
-    const port = this.options.port || await getAvailableTCPPort(MIN_SCAN_PORT, MAX_SCAN_PORT)
+    const port = this.options.port || await getAvailableTCPPort(MIN_SCAN_PORT, MAX_SCAN_PORT, this.options.bind)
 
     if (!port) throw new Error(`no available TCP port found`)
 
@@ -64,7 +64,7 @@ export class Proxy {
   }
 
   private async udp(): Promise<this> {
-    const port = this.options.port || await getAvailableUDPPort(MIN_SCAN_PORT, MAX_SCAN_PORT)
+    const port = this.options.port || await getAvailableUDPPort(MIN_SCAN_PORT, MAX_SCAN_PORT, this.options.bind)
 
     if (!port) throw new Error(`no available UDP port found`)
 
@@ -105,17 +105,23 @@ export class Proxy {
   private async tunnel(client: net.Socket) {
     const ws = await this.openTarget()
 
-    client.on('error', (error: Error) => console.error(error))
+    const terminate = (error?: Error) => {
+      if (!error) return
+      console.error(error.message)
+      ws.close()
+    }
+
+    client.on('error', (error: Error) => terminate)
           .on('end', () => ws.close())
-          .on('drain', () => ws.resume()) // resume the websocket when the socket buffer is empty
+          .on('drain', () => ws.resume())
+          .on('data', (data: Buffer) => ws.send(data, {binary: true}))
           .pause()
 
     ws.on('close', () => client.destroy())
-      .on('message', (data: Buffer) => client.write(data) || ws.pause()) // pause the websocket if the socket buffer is full
+      .on('message', (data: Buffer) => client.write(data, terminate) || ws.pause())
       .on('open', () => {
         if (this.client.debug) console.error('socket-link: connected TCP')
 
-        client.on('data', (data: Buffer) => ws.send(data, {binary: true}))
         client.resume()
       })
   }
@@ -123,13 +129,15 @@ export class Proxy {
   private async openTarget(): Promise<WebSocket> {
     if (this.client.debug) console.error('socket-link: opening %s', this.url)
 
-    const request = await this.client.sign({
+    const signature = await this.client.getSignature()
+
+    const request = await signRequest({
       method: 'GET',
       url: this.url,
       headers: this.options.headers,
       perMessageDeflate: true,
       timeout: CONNECT_TIMEOUT
-    })
+    }, signature)
 
     const ws = new WebSocket(this.url, request)
 

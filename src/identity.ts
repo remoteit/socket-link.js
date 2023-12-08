@@ -1,12 +1,13 @@
 import {instanceToPlain, plainToInstance, Transform, TransformationType, TransformFnParams} from 'class-transformer'
 import crypto, {KeyObject} from 'crypto'
 import fs from 'fs/promises'
-import jwt from 'jsonwebtoken'
+import {createSigner} from 'http-message-signatures/lib/algorithm'
+import {SigningKey} from 'http-message-signatures/lib/types'
 import os from 'os'
 import path from 'path'
-import {IDENTITY_FILE, USER_AGENT} from './constants'
+import {IDENTITY_FILE} from './constants'
 import {SocketLink} from './socket-link'
-import {getPrimaryNetwork} from './utils'
+import {getPrimaryNetwork, signRequest} from './utils'
 
 const KeyTransform = (params: TransformFnParams): any => {
   const {value} = params
@@ -23,13 +24,13 @@ const KeyTransform = (params: TransformFnParams): any => {
 }
 
 export class Identity {
-  readonly id!: string
+  id!: string
 
   @Transform(KeyTransform)
   private readonly key!: KeyObject
 
-  get token(): string {
-    return jwt.sign({id: this.id}, this.key, {algorithm: 'ES256'})
+  get signature(): SigningKey {
+    return createSigner(this.key, 'ecdsa-p256-sha256', this.id)
   }
 
   static async initialize(client: SocketLink): Promise<Identity> {
@@ -71,33 +72,30 @@ export class Identity {
 
     console.log(`registering ${name} with ${client.router}...`)
 
-    const request = {
+    const result = plainToInstance(this, {key: privateKey})
+
+    const request = await signRequest({
       method: 'POST',
       url: `https://api.${client.router}/register`,
-      headers: {
-        'user-agent': USER_AGENT,
-        'content-type': 'application/json'
-      },
       body: JSON.stringify({
           name,
           mac,
           key: publicKey.toString('base64')
         }
       )
-    }
+    }, result.signature)
 
-    const response: any = await fetch(request.url, request).catch(() => null)
+    const response: any = await fetch(request.url, request).catch(() => undefined)
 
-    if (!response.ok) throw new Error(response.statusText)
+    if (!response?.ok) throw new Error(response?.statusText || 'registration failed')
 
     const {id} = await response.json()
 
-    console.error(`${id} registered`)
+    console.error(`${id} successfully registered`)
 
-    return plainToInstance(this, {
-      id,
-      key: privateKey.toString('base64')
-    })
+    result.id = id // save node id
+
+    return result
   }
 
   async save(file: string): Promise<this> {

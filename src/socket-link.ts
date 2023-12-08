@@ -1,21 +1,11 @@
 import fs from 'fs/promises'
 import {createSigner} from 'http-message-signatures/lib/algorithm'
-import {signMessage} from 'http-message-signatures/lib/httpbis'
 import {SigningKey} from 'http-message-signatures/lib/types'
 import ini from 'ini'
 import path from 'path'
 import {Proxy, ProxyOptions, Service, ServiceOptions} from '.'
-import {
-  CREDENTIALS_FILE,
-  DEBUG_ROUTER,
-  DEFAULT_CONFIG,
-  DEFAULT_PROFILE,
-  DEFAULT_ROUTER,
-  GRAPHQL_URL,
-  SIGNATURE_ALGORITHM,
-  SIGNED_HEADERS,
-  USER_AGENT
-} from './constants'
+import {CREDENTIALS_FILE, DEBUG_ROUTER, DEFAULT_CONFIG, DEFAULT_PROFILE, DEFAULT_ROUTER, GRAPHQL_URL} from './constants'
+import {signRequest} from './utils'
 
 export interface ClientOptions {
   router: string  // Remote.It socket-link router hostname
@@ -55,14 +45,13 @@ export class SocketLink {
   }
 
   async api(query: string, variables?: any): Promise<any> {
-    const request = await this.sign({
+    const signature = await this.getSignature()
+
+    const request = await signRequest({
       method: 'POST',
       url: GRAPHQL_URL,
-      headers: {
-        'content-type': 'application/json'
-      },
       body: JSON.stringify({query, variables})
-    })
+    }, signature)
 
     const response: any = await fetch(request.url, request).catch(() => null)
 
@@ -87,24 +76,7 @@ export class SocketLink {
     return service.register()
   }
 
-  async sign(request: any): Promise<any> {
-    if (request.headers?.authorization) return request // we have an authorization header, skip signing
-
-    const key = await this.getSignature()
-
-    if (!key) return request // no key, skip signing
-
-    // add required signing headers
-
-    Object.assign(request.headers ||= {}, {
-      date: new Date().toUTCString(),
-      'user-agent': USER_AGENT
-    })
-
-    return signMessage({key, name: 'remoteit', fields: SIGNED_HEADERS}, request)
-  }
-
-  private async getSignature(): Promise<SigningKey | undefined> {
+  async getSignature(): Promise<SigningKey | undefined> {
     let {keyId, secret} = this.options
 
     if (!keyId || !secret) {
@@ -139,6 +111,6 @@ export class SocketLink {
       if (!secret) throw new Error(`Remote.It credentials missing: R3_SECRET_ACCESS_KEY`)
     }
 
-    return createSigner(Buffer.from(secret, 'base64'), SIGNATURE_ALGORITHM, keyId)
+    return createSigner(Buffer.from(secret, 'base64'), 'hmac-sha256', keyId)
   }
 }
