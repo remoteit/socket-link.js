@@ -4,7 +4,7 @@ import {AddressInfo} from 'net'
 import WebSocket from 'ws'
 import {SocketLink} from '.'
 import {CONNECT_TIMEOUT, LOCALHOST, MAX_SCAN_PORT, MIN_SCAN_PORT, PING_INTERVAL} from './constants'
-import {getAvailableTCPPort, getAvailableUDPPort} from './utils'
+import {getAvailableTCPPort, getAvailableUDPPort, signRequest} from './utils'
 
 export interface ProxyOptions {
   bind: string                                // address to bind to, defaults to localhost
@@ -129,13 +129,15 @@ export class Proxy {
   private async openTarget(): Promise<WebSocket> {
     if (this.client.debug) console.error('socket-link: opening %s', this.url)
 
-    const request = await this.client.sign({
+    const signature = await this.client.getSignature()
+
+    const request = await signRequest({
       method: 'GET',
       url: this.url,
       headers: this.options.headers,
       perMessageDeflate: true,
       timeout: CONNECT_TIMEOUT
-    })
+    }, signature)
 
     const ws = new WebSocket(this.url, request)
 

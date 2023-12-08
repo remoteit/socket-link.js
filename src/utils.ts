@@ -1,6 +1,9 @@
 import {createSocket} from 'dgram'
+import {signMessage} from 'http-message-signatures/lib/httpbis'
+import {SigningKey} from 'http-message-signatures/lib/types'
 import {createServer} from 'net'
 import os from 'os'
+import {SIGNED_HEADERS, USER_AGENT} from './constants'
 
 export async function getAvailableTCPPort(min: number, max: number, address: string): Promise<number | null> {
   for (let port = min; port <= max; port++) {
@@ -50,4 +53,16 @@ export function getPrimaryNetwork(): os.NetworkInterfaceInfo | null {
   }
 
   return null
+}
+
+export async function signRequest(request: any, key?: SigningKey): Promise<any> {
+  const headers = request.headers ||= {}
+
+  if (headers.authorization || !key) return request // we have an authorization header or no key, skip signing
+
+  headers.date ||= new Date().toUTCString()
+  headers['user-agent'] ||= USER_AGENT
+  headers['content-type'] ||= 'application/json'
+
+  return signMessage({key, name: 'remoteit', fields: SIGNED_HEADERS}, request)
 }

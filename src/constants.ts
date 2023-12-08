@@ -19,7 +19,6 @@ export const DEFAULT_PROFILE: string = 'DEFAULT'
 
 export const CREDENTIALS_FILE: string = 'credentials'
 
-export const SIGNATURE_ALGORITHM: string = 'hmac-sha256'
 export const SIGNED_HEADERS: string[] = ['@method', '@authority', '@target-uri', 'date']
 
 export const LOCALHOST: string = '127.0.0.1'
