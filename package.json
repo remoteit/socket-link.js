@@ -44,7 +44,7 @@
     "ini": "^4.1.1",
     "jsonwebtoken": "^9.0.2",
     "string-template": "^1.0.0",
-    "ws": "^8.15.0"
+    "ws": "^8.15.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
