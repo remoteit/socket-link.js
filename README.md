@@ -19,6 +19,8 @@ networking.
 ```shell
 npm i @remote.it/socket-link
 ```
+Add -g to your arguments if you are going to run this manually on the device which is this is installed. Use the above 
+if you are including this in your Node application.
 
 ## Basic Usage :computer:
 
