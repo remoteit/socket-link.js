@@ -43,7 +43,13 @@ import {DEFAULT_CONFIG, LOCALHOST, PROGRAM_DESCRIPTION, PROGRAM_NAME, PROGRAM_VE
 
            const proxy = await socketLink.connect(target, options)
 
-           const execute = template.map((arg: string) => format(arg, proxy.address))
+           const address = proxy.address
+
+           const execute = template.map((arg: string) => format(arg, {
+             address: address.address,
+             port: address.port,
+             host: `${address.address}:${address.port}`
+           }))
 
            if (socketLink.debug) console.error('socket-link: %s', execute.join(' '))
 

@@ -29,7 +29,7 @@ export class Proxy {
   constructor(client: SocketLink, target: string, options: Partial<ProxyOptions> = {}) {
     this.client = client
     this.options = {...DEFAULT_OPTIONS, ...options} as ProxyOptions
-    this.url = this.parseURL(target)
+    this.url = this.getURL(target)
   }
 
   get address(): AddressInfo {
@@ -52,7 +52,7 @@ export class Proxy {
 
     if (!port) throw new Error(`no available TCP port found`)
 
-    this.server = net.createServer({noDelay: true})
+    this.server = net.createServer({noDelay: true, keepAlive: true, pauseOnConnect: true})
 
     this.server
         .on('connection', socket => this.tunnel(socket))
@@ -105,20 +105,19 @@ export class Proxy {
   private async tunnel(client: net.Socket) {
     const ws = await this.openTarget()
 
-    const terminate = (error?: Error) => {
+    const callback = (error?: Error) => {
       if (!error) return
       console.error(error.message)
       ws.close()
     }
 
-    client.on('error', (error: Error) => terminate)
+    client.on('error', callback)
           .on('end', () => ws.close())
           .on('drain', () => ws.resume())
-          .on('data', (data: Buffer) => ws.send(data, {binary: true}))
-          .pause()
+          .on('data', (data: Buffer) => ws.send(data, {binary: true}, callback))
 
     ws.on('close', () => client.destroy())
-      .on('message', (data: Buffer) => client.write(data, terminate) || ws.pause())
+      .on('message', (data: Buffer) => client.write(data, callback) || ws.pause())
       .on('open', () => {
         if (this.client.debug) console.error('socket-link: connected TCP')
 
@@ -131,15 +130,17 @@ export class Proxy {
 
     const signature = await this.client.getSignature()
 
-    const request = await signRequest({
+    const request = {
       method: 'GET',
       url: this.url,
       headers: this.options.headers,
       perMessageDeflate: true,
       timeout: CONNECT_TIMEOUT
-    }, signature)
+    }
 
-    const ws = new WebSocket(this.url, request)
+    const signed = await signRequest(request, signature)
+
+    const ws = new WebSocket(this.url, signed)
 
     const ping = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) ws.ping()  // Ping frame to keep the connection alive
@@ -151,11 +152,11 @@ export class Proxy {
     return ws
   }
 
-  private parseURL(target: string): URL {
+  private getURL(target: string): URL {
     if (!target) throw new Error(`Remote.It socket-link target required`)
 
     const subdomain = target.replace(/[^0-9a-z]+/ig, '').toLowerCase()
 
-    return new URL(`https://${subdomain}.${this.client.router}`)
+    return new URL(`wss://${subdomain}.${this.client.router}`)
   }
 }
