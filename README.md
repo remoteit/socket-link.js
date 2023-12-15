@@ -19,6 +19,7 @@ networking.
 ```shell
 npm i @remote.it/socket-link
 ```
+Use the command shown above for inclusion in your Node.js application, or add `-g` to install globally if you plan to use the command-line interface (CLI) on your device. 
 
 ## Basic Usage :computer:
 
