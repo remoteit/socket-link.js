@@ -37,6 +37,7 @@
   "author": "Benoit",
   "license": "MIT",
   "dependencies": {
+    "class-transformer": "^0.5.1",
     "commander": "^11.1.0",
     "http-message-signatures": "^1.0.1",
     "ini": "^4.1.1",
