@@ -9,8 +9,8 @@ export const PROGRAM_DESCRIPTION: string = 'Remote.It socket-link CLI'
 
 export const USER_AGENT: string = 'remoteit-socket-link/1.0'
 
-export const DEFAULT_ROUTER: string = 'connect.remote.it'
-export const DEBUG_ROUTER: string = 'dev-connect.remote.it'
+export const DEFAULT_ROUTER: string = 'router.remote.it'
+export const DEBUG_ROUTER: string = 'dev-router.remote.it'
 
 export const GRAPHQL_URL: string = 'https://api.remote.it/graphql/v1'
 
